@@ -1,0 +1,31 @@
+/* Navbar styles */
+.navbar-brand {
+    font-size: 1.5rem; /* Increase font size for the brand */
+    font-weight: bold; /* Make the brand bold */
+    /* You can add more styles to customize the appearance of the brand */
+  }
+
+  .navbar-nav {
+    text-align: right; /* Align navbar items to the right */
+  }
+
+  .nav-item {
+    margin-right: 15px; /* Add some spacing between navbar items */
+  }
+
+  .nav-link {
+    color: #fff; /* Set text color for navbar links */
+    font-size: 1.2rem; /* Set font size for navbar links */
+    /* Add more styles as needed for the appearance of the links */
+  }
+
+  /* Shopping cart item count */
+  .cart-item-count {
+    border-radius: 50%; /* Make it circular */
+    font-size: 12px; /* Adjust the font size */
+    background-color: red;
+    color: white;
+    padding: 2px 6px; /* Adjust padding for better appearance */
+    vertical-align: middle; /* Align the count vertically */
+    margin-left: 5px; /* Add margin to separate count from the cart icon */
+  }

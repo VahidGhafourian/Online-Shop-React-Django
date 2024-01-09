@@ -1,0 +1,18 @@
+.col-3 {
+    width: 200px;
+    height: 250px;
+    text-align: center;
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 120px; /* Add margin at the bottom to separate products */
+  }
+
+  .col-3 img {
+    /* Ensure the image takes up the entire space within the container */
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Maintain aspect ratio and cover the container */
+    border-radius: 5px; /* Optional: Add border-radius for rounded corners */
+    margin-bottom: 20px;
+  }
