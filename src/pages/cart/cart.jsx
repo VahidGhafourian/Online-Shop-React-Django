@@ -12,7 +12,7 @@ const Cart =() => {
         </h1>
         <div className="row" >
             {
-                cartItems.map((item)=>{
+                cartItems?.map((item)=>{
                     if (item.count>0)
                         return <Product key={item.id} data={item.item}></Product>
                 })
