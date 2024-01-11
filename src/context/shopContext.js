@@ -18,7 +18,7 @@ export const ShopContextProvider = (probs)=>{
 
 
     const addToCart = (itemId, item) => {
-        if( ! cartItems?.find((item)=>item.id===itemId))
+        if( ! cartItems.find((item)=>item.id===itemId))
             setCartItems([...cartItems, {id: itemId, count: 1, item: item}])
         else
             setCartItems(cartItems.map((item) => {
@@ -36,7 +36,12 @@ export const ShopContextProvider = (probs)=>{
         }))
     }
 
-    const contextValue = {cartItems, addToCart,removeFromCart }
+    const resetCart = () => {
+        setCartItems();
+        localStorage.removeItem('coffee_cart')
+    }
+
+    const contextValue = {cartItems, addToCart,removeFromCart, resetCart }
 
     return <ShopContext.Provider value={contextValue}>{probs.children}</ShopContext.Provider>
 }

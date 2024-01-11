@@ -3,8 +3,7 @@ import { ShopContext } from "../../context/shopContext";
 import Product from "../shop/product";
 
 const Cart =() => {
-    const {cartItems} = useContext(ShopContext)
-    console.log(cartItems);
+    const {cartItems, resetCart} = useContext(ShopContext)
     return (
         <React.Fragment>
         <h1>
@@ -18,6 +17,7 @@ const Cart =() => {
                 })
             }
         </div>
+        <button className="btn btn-warning m-3" onClick={resetCart} >خالی کردن سبد خرید</button>
         </React.Fragment>
     )
 }

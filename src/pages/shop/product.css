@@ -1,18 +1,27 @@
 .col-3 {
+    position: relative;
     width: 200px;
     height: 250px;
     text-align: center;
     padding: 10px;
     margin: 10px;
     border: 1px solid #ccc;
-    margin-bottom: 120px; /* Add margin at the bottom to separate products */
+    margin-bottom: 120px;
   }
 
-  .col-3 img {
-    /* Ensure the image takes up the entire space within the container */
+.col-3 img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Maintain aspect ratio and cover the container */
-    border-radius: 5px; /* Optional: Add border-radius for rounded corners */
+    object-fit: cover;
+    border-radius: 5px;
     margin-bottom: 20px;
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+    position: relative;
+    z-index: 0;
+  }
+
+.col-3:hover img {
+    transform: scale(1.08); /* Scale image slightly on hover */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Add shadow on hover */
+    z-index: 1; /* Bring the image to the front on hover */
   }
