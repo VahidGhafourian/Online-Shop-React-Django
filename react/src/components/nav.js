@@ -13,19 +13,23 @@ const Nav =() => {
     return (
         <div className="navbar navbar-dark bg-dark navbar-expand-lg">
             <div className="container">
-                <a className="navbar-brand">فروشگاه ظهور قهوه</a>
+
                 <ul className="navbar-nav">
-                <li className="nav-item">
-                    <Link to="/" className="nav-link">صفحه اصلی</Link>
-                </li>
-                <li className="nav-item">
-                    <Link to="/cart" className="nav-link">
-                    سبد خرید
-                    <FontAwesomeIcon icon={faShoppingCart} />
-                    {itemCount > 0 && <span className="cart-item-count">{itemCount}</span>}
-                    </Link>
-                </li>
+                    <li className="nav-item">
+                        <Link to="/cart" className="nav-link">
+                        سبد خرید
+                        <FontAwesomeIcon icon={faShoppingCart} />
+                        {itemCount > 0 && <span className="cart-item-count">{itemCount}</span>}
+                        </Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link to="/login" className="nav-link">ورود</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link to="/" className="nav-link">صفحه اصلی</Link>
+                    </li>
                 </ul>
+                <a className="navbar-brand">فروشگاه ظهور قهوه</a>
             </div>
         </div>
 
