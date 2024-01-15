@@ -18,9 +18,8 @@ const Login = () => {
 
   useEffect(() => {
     if (isNewUser) {
-      // If isNewUser is true, you can redirect to the OTP page or show the OTP form
-      // For example, you can redirect to '/otp' route
-      navigate('/otp');
+        console.log('redirct to otp');
+      navigate(`/otp/${phoneNumber}`);
     }
   }, [isNewUser, navigate]);
 
@@ -41,13 +40,13 @@ const Login = () => {
     if (!error) {
         if(showPasswordForm) {
             try {
-                const response = await fetch('/api/verify-password', {
+                const response = await fetch('http://127.0.0.1:8000/api/account/token/', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
                   },
                   body: JSON.stringify({
-                    phoneNumber,
+                    'phone_number': phoneNumber,
                     password,
                   }),
                 });
@@ -57,10 +56,13 @@ const Login = () => {
                 }
 
                 const data = await response.json();
-
-                if (data.success) {
+                if (data.access) {
                   // If success is true, user is logged in, and you receive a token
                   console.log('Login successful');
+                  console.log(data);
+                  localStorage.setItem('access', data.access)
+                  localStorage.setItem('refresh', data.refresh)
+                  navigate('/');
                   // You can store the token or perform other actions here
 
                   // Navigate to the next page or redirect to the desired location
@@ -73,7 +75,7 @@ const Login = () => {
               }
         }
         try {
-            const response = await fetch('/api/login', {
+            const response = await fetch('http://127.0.0.1:8000/api/account/check-login-phone/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -86,11 +88,12 @@ const Login = () => {
             }
 
             const data = await response.json();
-            verifyPhoneNumber();
+
             login();
+            verifyPhoneNumber();
 
             if (data.newUser) {
-            setIsNewUser(true);
+                setIsNewUser(true);
             } else {
             // If the user is not new, show the password form
                 if (!isNewUser) {
@@ -132,7 +135,7 @@ const Login = () => {
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      <button onClick={handleLogin} disabled={!!error}>Next</button>
+      <button onClick={handleLogin} disabled={!!error}>{showPasswordForm ? 'Login' : 'Next'}</button>
 
     </div>
   );

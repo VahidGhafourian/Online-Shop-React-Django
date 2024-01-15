@@ -25,8 +25,7 @@ function App() {
             <Route path='/' element={<Shop />} />
             <Route path='/cart' element={<Cart />} />
             <Route path='/login' element={<Login />} />
-            <Route path='/otp' element={<OTP />} />
-            <Route path='/createProfile' element={<CreateProfile />} />
+            <Route path='/otp/:phoneNumber' element={<OTP />} />
           </Routes>
           <Footer />
         </Router>

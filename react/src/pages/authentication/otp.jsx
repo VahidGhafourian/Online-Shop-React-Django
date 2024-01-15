@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams  } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const OTP = () => {
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '']);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { isLoggedIn, isPhoneNumberVerified, isOtpVerified, verifyOtp } = useAuth();
-
+  const { phoneNumber } = useParams();
 
   useEffect(() => {
     // Check if the user is not logged in or the phone number is not verified
@@ -16,6 +21,22 @@ const OTP = () => {
         navigate('/login');
     }
   }, [isLoggedIn, isPhoneNumberVerified, isOtpVerified, navigate]);
+
+//   Sending OTP Message
+    useEffect(() => {
+        try {
+            const response = fetch('http://127.0.0.1:8000/api/account/send-otp/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ phoneNumber }),
+            });
+        }
+        catch (error) {
+            console.error('Error during OTP verification:', error.message);
+        }
+    }, []);
 
   const handleOtpChange = (index, value) => {
     const newOtp = [...otp];
@@ -46,29 +67,33 @@ const OTP = () => {
     // Check if the OTP is valid before sending to the backend
     if (!error) {
       try {
-        const response = await fetch('/api/verify-otp', {
+        const response = await fetch('http://127.0.0.1:8000/api/account/verify-otp/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ otp: otp.join('') }),
+          body: JSON.stringify({
+            otp: otp.join(''),
+            phone_number: phoneNumber,
+            'first_name': firstName,
+            'last_name': lastName,
+            'password': password,
+            'confirm_password': confirmPassword,
+            'email': email, }),
         });
-
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
 
         const data = await response.json();
-
-        if (data.state) {
+        if (data.success) {
           // If state is true, user is verified, navigate to the next page
+          console.log('Profile created successfully');
           verifyOtp();
-          if (isOtpVerified) {
-            navigate('/createProfile');
-          }
+          navigate('/');
         } else {
           // If state is false, show error
-          setError('Incorrect OTP. Please try again.');
+          setError('Failed to create profile. Incorrect OTP. Please try again.');
         }
       } catch (error) {
         console.error('Error during OTP verification:', error.message);
@@ -80,6 +105,47 @@ const OTP = () => {
 
   return (
     <div>
+      <h2>Create Your Profile</h2>
+      <p>Phone Number: {phoneNumber}</p>
+      <label htmlFor="firstName">First Name:</label>
+      <input
+        type="text"
+        id="firstName"
+        value={firstName}
+        onChange={(e) => setFirstName(e.target.value)}
+      />
+
+      <label htmlFor="lastName">Last Name:</label>
+      <input
+        type="text"
+        id="lastName"
+        value={lastName}
+        onChange={(e) => setLastName(e.target.value)}
+      />
+
+      <label htmlFor="email">Email:</label>
+      <input
+        type="email"
+        id="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <label htmlFor="password">password:</label>
+      <input
+        type="password"
+        id="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <label htmlFor="confirm_password">confirm password:</label>
+      <input
+        type="password"
+        id="confirm_password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+      />
       <h2>Enter OTP</h2>
       <div style={{ display: 'flex', gap: '10px' }}>
         {otp.map((digit, index) => (
