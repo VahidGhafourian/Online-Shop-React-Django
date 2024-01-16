@@ -11,16 +11,16 @@ const OTP = () => {
   const [otp, setOtp] = useState(['', '', '', '', '']);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { isLoggedIn, isPhoneNumberVerified, isOtpVerified, verifyOtp } = useAuth();
+  const { isPhoneNumberVerified, isOtpVerified, verifyOtp, login } = useAuth();
   const { phoneNumber } = useParams();
 
   useEffect(() => {
     // Check if the user is not logged in or the phone number is not verified
-    if (!isLoggedIn || !isPhoneNumberVerified) {
+    if (!isPhoneNumberVerified) {
         // Redirect to the login page or another appropriate location
         navigate('/login');
     }
-  }, [isLoggedIn, isPhoneNumberVerified, isOtpVerified, navigate]);
+  }, [isPhoneNumberVerified, isOtpVerified, navigate]);
 
 //   Sending OTP Message
     useEffect(() => {
@@ -90,6 +90,39 @@ const OTP = () => {
           // If state is true, user is verified, navigate to the next page
           console.log('Profile created successfully');
           verifyOtp();
+          try {
+            const response = await fetch('http://127.0.0.1:8000/api/account/token/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                'phone_number': phoneNumber,
+                password,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+            if (data.access) {
+              // If success is true, user is logged in, and you receive a token
+              console.log('Login successful');
+              console.log(data);
+              login(data.access, data.refresh)
+              navigate('/');
+              // You can store the token or perform other actions here
+
+              // Navigate to the next page or redirect to the desired location
+            } else {
+              // If success is false, inform the user to change the entered password
+              console.error('Incorrect password. Please change your password.');
+            }
+          } catch (error) {
+            console.error('Error during password verification:', error.message);
+          }
           navigate('/');
         } else {
           // If state is false, show error
@@ -106,7 +139,7 @@ const OTP = () => {
   return (
     <div>
       <h2>Create Your Profile</h2>
-      <p>Phone Number: {phoneNumber}</p>
+      <label value={phoneNumber}>Phone Number: {phoneNumber}</label>
       <label htmlFor="firstName">First Name:</label>
       <input
         type="text"

@@ -4,10 +4,11 @@ from .models import OtpCode, User
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
-from .serializers import UserRegisterSerializer, OtpCodeSerializer
+from .serializers import UserRegisterSerializer, OtpCodeSerializer, UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.permissions import IsAuthenticated
 import json
 
 class UserRegisterView(APIView):
@@ -139,6 +140,7 @@ class GenerateOTP(APIView):
         phone_number = request.data.get('phoneNumber')
         # Generate a random 6-digit OTP
         otp_code = ''.join([str(random.randint(0, 9)) for _ in range(5)])
+        print(otp_code)
         # Save the OTP in your backend (e.g., in a model or cache)
         ser_OtpCode = OtpCodeSerializer(data={'code': int(otp_code),
                                               'phone_number': phone_number})
@@ -164,16 +166,28 @@ class VerifyOTP(APIView):
         data = json.loads(request.body.decode('utf-8'))
         phone_number = data.get('phone_number')
         entered_otp = data.get('otp')
+        ser_data = UserRegisterSerializer(data=data)
 
         try:
             user_otp = OtpCode.objects.get(phone_number=phone_number, code=entered_otp)
-            ser_data = UserRegisterSerializer(data=data)
             # TODO: Register new user with this phone number
             if ser_data.is_valid():
                 ser_data.create(ser_data.validated_data)
+                user = authenticate(request, phone_number=phone_number, code=entered_otp)
+                if user:
+                    login(request, user)
             else:
                 print(ser_data.errors)
             # OTP is valid, you can proceed to registration
             return Response({'success': True, 'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
+            del ser_data
             return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]  
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)

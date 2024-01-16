@@ -12,5 +12,6 @@ urlpatterns = [
     path('verify-otp/', views.VerifyOTP.as_view(), name='verify_otp'),
     path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('user-info/', views.UserInfoView.as_view(), name='user-info'),
     # path('logout/', views.UserLogoutView.as_view(), name="user_logout"),
 ]

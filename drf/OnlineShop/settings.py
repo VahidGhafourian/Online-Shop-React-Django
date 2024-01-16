@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # Third party app
     'rest_framework',
     'corsheaders',
+    'rest_framework_simplejwt',
 
     # Local apps
     'account.apps.AccountConfig',
@@ -128,7 +129,6 @@ AUTH_USER_MODEL = "account.User"
 # REST_FRAMEWORK
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_THROTTLE_CLASSES': [
@@ -151,7 +151,12 @@ REST_FRAMEWORK = {
     ]
 }
 
-
+from datetime import timedelta
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=100),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=2),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
 
 
 

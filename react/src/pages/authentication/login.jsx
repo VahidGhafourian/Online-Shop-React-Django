@@ -58,10 +58,7 @@ const Login = () => {
                 const data = await response.json();
                 if (data.access) {
                   // If success is true, user is logged in, and you receive a token
-                  console.log('Login successful');
-                  console.log(data);
-                  localStorage.setItem('access', data.access)
-                  localStorage.setItem('refresh', data.refresh)
+                  login(data.access, data.refresh)
                   navigate('/');
                   // You can store the token or perform other actions here
 
@@ -70,26 +67,24 @@ const Login = () => {
                   // If success is false, inform the user to change the entered password
                   console.error('Incorrect password. Please change your password.');
                 }
-              } catch (error) {
+            } catch (error) {
                 console.error('Error during password verification:', error.message);
-              }
+            }
         }
         try {
             const response = await fetch('http://127.0.0.1:8000/api/account/check-login-phone/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ phoneNumber }),
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phoneNumber }),
             });
 
             if (!response.ok) {
-            throw new Error('Network response was not ok');
+                throw new Error('Network response was not ok');
             }
 
             const data = await response.json();
-
-            login();
             verifyPhoneNumber();
 
             if (data.newUser) {

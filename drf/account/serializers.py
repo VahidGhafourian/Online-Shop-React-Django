@@ -9,6 +9,7 @@ def clean_email(value):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
@@ -40,6 +41,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'phone_number', 'first_name', 'last_name', 'date_joined')
 
 class OtpCodeSerializer(serializers.ModelSerializer):
     class Meta:

@@ -12,6 +12,7 @@ import Login from './pages/authentication/login';
 import OTP from './pages/authentication/otp';
 import CreateProfile from './pages/authentication/createProfile';
 import { AuthProvider } from './context/AuthContext';
+import Logout from './pages/authentication/Logout';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path='/' element={<Shop />} />
             <Route path='/cart' element={<Cart />} />
             <Route path='/login' element={<Login />} />
+            <Route path='/logout' element={<Logout />} />
             <Route path='/otp/:phoneNumber' element={<OTP />} />
           </Routes>
           <Footer />
