@@ -11,16 +11,16 @@ const OTP = () => {
   const [otp, setOtp] = useState(['', '', '', '', '']);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { isPhoneNumberVerified, isOtpVerified, verifyOtp, login } = useAuth();
+  const { isNewUser, login } = useAuth();
   const { phoneNumber } = useParams();
 
   useEffect(() => {
     // Check if the user is not logged in or the phone number is not verified
-    if (!isPhoneNumberVerified) {
+    if (!isNewUser) {
         // Redirect to the login page or another appropriate location
         navigate('/login');
     }
-  }, [isPhoneNumberVerified, isOtpVerified, navigate]);
+  }, [isNewUser, navigate]);
 
 //   Sending OTP Message
     useEffect(() => {
@@ -89,7 +89,7 @@ const OTP = () => {
         if (data.success) {
           // If state is true, user is verified, navigate to the next page
           console.log('Profile created successfully');
-          verifyOtp();
+
           try {
             const response = await fetch('http://127.0.0.1:8000/api/account/token/', {
               method: 'POST',

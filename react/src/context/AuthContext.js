@@ -1,15 +1,41 @@
-// AuthContext.js
-import { createContext, useContext, useState, useEffect } from 'react';
+// src/context/AuthContext.js
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setLoggedIn] = useState(false);
-  const [isPhoneNumberVerified, setPhoneNumberVerified] = useState(false);
-  const [isOtpVerified, setOtpVerified] = useState(false);
-  const [token, setToken] = useState(null);
-  const [refresh, setRefresh] = useState(null);
-  const [user, setUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [accessToken, setAccessToken] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(null);
+
+  useEffect(() => {
+    // Retrieve tokens from localStorage on component mount
+    const storedAccessToken = localStorage.getItem('authToken');
+    const storedRefreshToken = localStorage.getItem('authRefresh');
+
+    if (storedAccessToken && storedRefreshToken) {
+      setAccessToken(storedAccessToken);
+      setRefreshToken(storedRefreshToken);
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  const login = (tokens) => {
+    setAccessToken(tokens.access);
+    setRefreshToken(tokens.refresh);
+    localStorage.setItem("authToken", tokens.access);
+    localStorage.setItem("authRefresh", tokens.refresh);
+    setIsLoggedIn(true);
+  };
+
+  const logout = () => {
+    setAccessToken(null);
+    setRefreshToken(null);
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authRefresh");
+    setIsLoggedIn(false);
+  };
 
   const getUserInfo = async (token) => {
     try {
@@ -21,50 +47,26 @@ export const AuthProvider = ({ children }) => {
         },
       }).then(response => response.json())
       .catch(error => console.error('Error:', error));
-      setUser(response);
-      return user
     } catch (error) {
       // Handle error (e.g., token expired, unauthorized)
       console.error("Error fetching user information:", error);
     }
   };
 
-  const login = (token, refresh) => {
-    setToken(token);
-    setRefresh(refresh);
-    localStorage.setItem("authToken", token);
-    localStorage.setItem("authRefresh", refresh);
-    setLoggedIn(true)
-    // setUser(getUserInfo(token))
-  };
+  const setNew = (value) => {
+    setIsNewUser(value)
+  }
 
-  const verifyPhoneNumber = () => {
-    // Simulate a successful phone number verification
-    setPhoneNumberVerified(true);
-  };
-
-  const verifyOtp = () => {
-    // Simulate a successful OTP verification
-    setOtpVerified(true);
-  };
-
-  const logout = () => {
-    // Implement your logout logic here
-    // Reset all verification statuses
-    setLoggedIn(false);
-    setPhoneNumberVerified(false);
-    setOtpVerified(false);
-    setToken(null);
-    setRefresh(null);
-    setUser(null);
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("authRefresh");
+  const contextValue = {
+    isLoggedIn, isNewUser, setNew, setIsLoggedIn,
+    accessToken,
+    refreshToken,
+    login,
+    logout,
   };
 
   return (
-    <AuthContext.Provider
-      value={{ isLoggedIn, isPhoneNumberVerified, isOtpVerified, login, verifyPhoneNumber, verifyOtp, logout, getUserInfo }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

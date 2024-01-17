@@ -4,44 +4,15 @@ import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/shopContext";
 import './nav.css';
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 
 const Nav = () => {
     const { cartItems } = useContext(ShopContext);
-    const { getUserInfo, isLoggedIn } = useAuth()
-    const [loggedIn, setLoggedIn] = useState(isLoggedIn);
-    const [user, setUser] = useState(null);
-    useEffect(() => {
-        setLoggedIn(isLoggedIn); // Update the local state when isLoggedIn changes
-    }, [isLoggedIn]);
+    const { isLoggedIn, logout } = useAuth();
 
     const itemCount = cartItems?.reduce((prev, current) => {
         return prev + current.count;
     }, 0);
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-              const authToken = localStorage.getItem('authToken');
-              const response = await getUserInfo(authToken);
-              console.log(response);
-                if (response != null) {
-                    response.then(result => {
-                        console.log(result);
-                    })
-                    // setUser(response);
-                } else {
-                    // Handle the case where response is null or undefined
-                    console.error("User information not available.");
-                    setUser(null);
-                }
-            } catch (error) {
-              console.error("Error fetching user information:", error);
-              setUser(null);
-            }
-          };
-
-          fetchData();
-    }, [loggedIn, ])
 
 
     return (
@@ -57,14 +28,14 @@ const Nav = () => {
                         </Link>
                     </li>
 
-                    {user ? (
+                    {isLoggedIn ? (
                         // If user is logged in
                         <>
                             <li className="nav-item">
                                 <Link to="/profile" className="nav-link">حساب</Link>
                             </li>
                             <li className="nav-item">
-                                <Link to="/logout" className="nav-link">خروج</Link>
+                                <button className="nav-link" onClick={logout}>خروج</button>
                             </li>
                         </>
                     ) : (

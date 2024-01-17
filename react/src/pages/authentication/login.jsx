@@ -5,23 +5,19 @@ import { useAuth } from '../../context/AuthContext';
 
 
 const Login = () => {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [error, setError] = useState('');
-  const [isNewUser, setIsNewUser] = useState(false);
-  const [otp, setOtp] = useState('');
+  const { login, setNew, isLoggedIn, setIsLoggedIn } = useAuth();
   const navigate = useNavigate();
-  const { isLoggedIn, isPhoneNumberVerified, login, verifyPhoneNumber } = useAuth();
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
+
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
-
-
+  const [error, setError] = useState('');
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   useEffect(() => {
-    if (isNewUser) {
-        console.log('redirct to otp');
-      navigate(`/otp/${phoneNumber}`);
-    }
-  }, [isNewUser, navigate]);
+    if (isLoggedIn)
+      navigate('/')
+  }, [isLoggedIn])
+
 
   const handlePhoneNumberChange = (e) => {
     const inputPhoneNumber = e.target.value;
@@ -36,72 +32,62 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
-    // Check if the phone number is valid before attempting to log in
-    if (!error) {
-        if(showPasswordForm) {
-            try {
-                const response = await fetch('http://127.0.0.1:8000/api/account/token/', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    'phone_number': phoneNumber,
-                    password,
-                  }),
-                });
+    // Call API to check login status based on phone number
+    try {
+      // Dummy API call, replace with actual API calls
+      const response = await fetch('http://127.0.0.1:8000/api/account/check-login-phone/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phoneNumber }),
+      });
 
-                if (!response.ok) {
-                  throw new Error('Network response was not ok');
-                }
+      const result = await response.json();
 
-                const data = await response.json();
-                if (data.access) {
-                  // If success is true, user is logged in, and you receive a token
-                  login(data.access, data.refresh)
-                  navigate('/');
-                  // You can store the token or perform other actions here
+      if (result.newUser) {
+        setNew(true);
+        navigate(`/otp/${phoneNumber}`);
+      } else {
+        // If existing user, show password field
+        // You may want to redirect to the main page or handle login logic here
+        // For simplicity, assuming the API returns is_new_user correctly
+        // You should replace this with actual API response handling
+        setShowPasswordForm(true);
+      }
+    } catch (error) {
+      console.error('Error checking login status:', error);
+    }
+  };
 
-                  // Navigate to the next page or redirect to the desired location
-                } else {
-                  // If success is false, inform the user to change the entered password
-                  console.error('Incorrect password. Please change your password.');
-                }
-            } catch (error) {
-                console.error('Error during password verification:', error.message);
-            }
-        }
-        try {
-            const response = await fetch('http://127.0.0.1:8000/api/account/check-login-phone/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ phoneNumber }),
-            });
+  const handleFormSubmit = async () => {
+    // Handle logic for existing user (e.g., login and save tokens)
+    try {
+      // Dummy API call, replace with actual API calls
+      const response = await fetch('http://127.0.0.1:8000/api/account/token/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          password: password,
+        }),
+      });
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+      const result = await response.json();
 
-            const data = await response.json();
-            verifyPhoneNumber();
-
-            if (data.newUser) {
-                setIsNewUser(true);
-            } else {
-            // If the user is not new, show the password form
-                if (!isNewUser) {
-                    setShowPasswordForm(true);
-                }
-            }
-
-
-        } catch (error) {
-            console.error('Error during login:', error.message);
-        }
-    } else {
-      console.error('Invalid phone number. Please correct the errors.');
+      if (result.access) {
+        // Save tokens and update login status
+        login(result);
+        setIsLoggedIn(true)
+        navigate('/');
+      } else {
+        // Handle login failure
+        console.error('Login failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
     }
   };
 
@@ -130,7 +116,7 @@ const Login = () => {
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      <button onClick={handleLogin} disabled={!!error}>{showPasswordForm ? 'Login' : 'Next'}</button>
+      <button onClick={showPasswordForm ? handleFormSubmit : handleLogin} disabled={!!error}>{showPasswordForm ? 'Login' : 'Next'}</button>
 
     </div>
   );
