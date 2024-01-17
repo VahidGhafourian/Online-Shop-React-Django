@@ -19,8 +19,7 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-      })
-      .then(response => response.json())
+      }).then(response => response.json())
       .catch(error => console.error('Error:', error));
       setUser(response);
       return user

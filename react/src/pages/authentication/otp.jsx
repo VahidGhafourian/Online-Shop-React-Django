@@ -108,14 +108,9 @@ const OTP = () => {
 
             const data = await response.json();
             if (data.access) {
-              // If success is true, user is logged in, and you receive a token
-              console.log('Login successful');
-              console.log(data);
               login(data.access, data.refresh)
               navigate('/');
-              // You can store the token or perform other actions here
 
-              // Navigate to the next page or redirect to the desired location
             } else {
               // If success is false, inform the user to change the entered password
               console.error('Incorrect password. Please change your password.');
@@ -123,7 +118,6 @@ const OTP = () => {
           } catch (error) {
             console.error('Error during password verification:', error.message);
           }
-          navigate('/');
         } else {
           // If state is false, show error
           setError('Failed to create profile. Incorrect OTP. Please try again.');
