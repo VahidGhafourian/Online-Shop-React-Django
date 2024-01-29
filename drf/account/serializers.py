@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, OtpCode
+from .models import User, OtpCode, Address
 
 
 def clean_email(value):
@@ -54,3 +54,8 @@ class OtpCodeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return OtpCode.objects.create(**validated_data)
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['id', 'is_default', 'country', 'state', 'city', 'street', 'postal_code', 'created_at', 'updated_at', 'user']

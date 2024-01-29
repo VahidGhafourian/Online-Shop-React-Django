@@ -4,6 +4,7 @@ export const ShopContext = createContext(null);
 
 export const ShopContextProvider = (probs)=>{
     const [cartItems, setCartItems] = useState()
+    const [invoice, setInvoice] = useState()
 
     useEffect(() => {
       const data = localStorage.getItem("coffee_cart")
@@ -41,7 +42,8 @@ export const ShopContextProvider = (probs)=>{
         localStorage.removeItem('coffee_cart')
     }
 
-    const contextValue = {cartItems, addToCart,removeFromCart, resetCart }
+
+    const contextValue = {cartItems, addToCart,removeFromCart, resetCart, invoice, setInvoice }
 
     return <ShopContext.Provider value={contextValue}>{probs.children}</ShopContext.Provider>
 }

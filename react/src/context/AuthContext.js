@@ -1,5 +1,6 @@
 // src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -37,6 +38,30 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
   };
 
+  const resetAccessToken = async () => {
+    const response = await fetch("http://127.0.0.1:8000/api/account/user-info/", {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    }).then(response => response.json())
+    try {
+      if (response.code==='token_not_valid') {
+        const res = await axios.post(`http://127.0.0.1:8000/api/account/token/refresh/`, {
+          refresh: localStorage.getItem('authRefresh'),
+        });
+        setAccessToken(res.data.access)
+        localStorage.setItem("authToken", res.data.access);
+      }
+    } catch (error) {
+      console.error('Error refreshing access token:', error);
+      console.log("logging out ");
+      logout()
+      // throw error;
+    }
+  }
+
   const getUserInfo = async (token) => {
     try {
       const response = await fetch("http://127.0.0.1:8000/api/account/user-info/", {
@@ -58,7 +83,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   const contextValue = {
-    isLoggedIn, isNewUser, setNew, setIsLoggedIn,
+    isLoggedIn, isNewUser, setNew, setIsLoggedIn, resetAccessToken,
     accessToken,
     refreshToken,
     login,

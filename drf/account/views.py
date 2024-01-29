@@ -1,14 +1,15 @@
 import random
 from utils import send_otp_code
-from .models import OtpCode, User
+from .models import OtpCode, User, Address
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
-from .serializers import UserRegisterSerializer, OtpCodeSerializer, UserSerializer
+from .serializers import UserRegisterSerializer, OtpCodeSerializer, UserSerializer, AddressSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
 import json
 
 class UserRegisterView(APIView):
@@ -71,7 +72,6 @@ class UserRegisterVerifyCodeView(APIView):
                     return Response({'success': True}, status=status.HTTP_201_CREATED)
         return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class UserLogoutView(APIView):
     """
         Method: GET \n
@@ -105,7 +105,6 @@ class VerifyPassword(APIView):
             login(request, user)
             return Response({'success': True}, status=status.HTTP_200_OK)
         return Response({'success': False}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 class UserCheckLoginPhone(APIView): # NEW
     """
@@ -185,9 +184,31 @@ class VerifyOTP(APIView):
             return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserInfoView(APIView):
-    permission_classes = [IsAuthenticated]  
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+
+class AddressView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Retrieve all addresses of the authenticated user
+        addresses = Address.objects.filter(user=request.user)
+        serializer = AddressSerializer(addresses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        new_address_data = request.data.get('newAddressForm', {})
+        new_address_data['user'] = request.user.id
+
+        serializer = AddressSerializer(data=new_address_data)
+        if serializer.is_valid():
+            # If the serializer is valid, save the new address
+            serializer.save(user=request.user)  # Assuming the user is authenticated
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

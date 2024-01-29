@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
 from kavenegar import *
+import random
 
 def send_otp_code(phone_number, code):
     try:
@@ -20,3 +21,7 @@ def send_otp_code(phone_number, code):
 class IsAdminUserMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.is_admin
+
+def generate_transactio_id():
+    # TODO: make sure to be unique
+    return random.randint(100000000, 999999999)
