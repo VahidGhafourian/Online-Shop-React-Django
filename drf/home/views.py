@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Product, Category, Order, OrderItem, Payment
-from .serializers import ProductSerializer, CategorySerializer, OrderSerializer
+from .models import Product, Category # Order, OrderItem, Payment
+from .serializers import ProductSerializer, CategorySerializer # OrderSerializer
 from account.serializers import AddressSerializer
 from account.models import Address
 from rest_framework import status
@@ -11,7 +11,7 @@ from django.shortcuts import redirect
 import requests
 from django.http import JsonResponse
 
-class GetProduts(APIView):
+class GetProdutsView(APIView):
     """
         Method: Get \n
             Get all list of products (for a category)
@@ -48,7 +48,7 @@ class ProductDetailView(APIView):
         product = ProductSerializer(instance=product)
         return Response(data={'product': product.data}, status=status.HTTP_200_OK)
 
-class OrderAddView(APIView):
+# class OrderAddView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -71,7 +71,7 @@ class OrderAddView(APIView):
         serializer = OrderSerializer(instance=order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class DoPayment(APIView):
+# class DoPayment(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -113,7 +113,7 @@ class DoPayment(APIView):
             return JsonResponse({"error": "Failed to connect to ZarinPal API"}, status=500)
 
 
-class UserOrders(APIView):
+# class UserOrders(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):

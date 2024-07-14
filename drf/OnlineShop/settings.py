@@ -143,12 +143,12 @@ REST_FRAMEWORK = {
         'user': '1000/hour'
     },
 
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-
-
         'rest_framework.renderers.BrowsableAPIRenderer', # comment on production
         'rest_framework.renderers.AdminRenderer', # comment on production
     ]
