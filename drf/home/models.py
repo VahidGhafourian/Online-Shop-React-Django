@@ -11,8 +11,8 @@ class Category(models.Model):
     slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    clproduct_attributes_schema = models.JSONField(null=True, blank=True)
-    variant_attributes_schema = models.JSONField(null=True, blank=True)
+    clproduct_attributes_schema = models.JSONField(default=dict, null=True, blank=True)
+    variant_attributes_schema = models.JSONField(default=dict, null=True, blank=True)
 
     class Meta:
         ordering = ('title', )
@@ -31,7 +31,7 @@ class Product(models.Model):
     slug = models.SlugField(max_length=200, unique=True)
     image = models.ImageField(null=True)
     description = RichTextField()
-    attributes = models.JSONField()
+    attributes = models.JSONField(default=dict)
     # price = models.IntegerField()
     # quantity = models.IntegerField(default=1)
     # available = models.BooleanField(default=True)
@@ -52,7 +52,7 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     items_count = models.PositiveIntegerField()
-    attributes = models.JSONField()
+    attributes = models.JSONField(default=dict, )
 
     def __str__(self):
         return f"{self.product.title} - Variant"

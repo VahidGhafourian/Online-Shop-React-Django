@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'ckeditor',
+    'jsoneditor',
 
     # Local apps
     'account.apps.AccountConfig',
