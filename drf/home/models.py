@@ -3,15 +3,15 @@ from django.urls import reverse
 from account.models import User, Address
 from ckeditor.fields import RichTextField
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+from jsonschema import validate, ValidationError
 
 class Category(models.Model):
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, related_name='children', null=True, blank=True)
+    parent = models.ForeignKey('self', on_delete=models.DO_NOTHING, related_name='children', null=True, blank=True)
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    clproduct_attributes_schema = models.JSONField(default=dict, null=True, blank=True)
+    product_attributes_schema = models.JSONField(default=dict, null=True, blank=True)
     variant_attributes_schema = models.JSONField(default=dict, null=True, blank=True)
 
     class Meta:
@@ -29,12 +29,9 @@ class Product(models.Model):
     category = models.ForeignKey(Category, related_name='products', on_delete=models.DO_NOTHING, limit_choices_to={'children__isnull': True})
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
-    image = models.ImageField(null=True)
-    description = RichTextField()
-    attributes = models.JSONField(default=dict)
-    # price = models.IntegerField()
-    # quantity = models.IntegerField(default=1)
-    # available = models.BooleanField(default=True)
+    image = models.ImageField(null=True, blank=True)
+    description = RichTextField(null=True, blank=True)
+    attributes = models.JSONField(default=dict, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -44,6 +41,10 @@ class Product(models.Model):
     def __str__(self):
         return self.title
 
+    def validate_attributes(self):
+        a = validate(instance=self.attributes, schema=self.category.product_attributes_schema)
+        print(a)
+
     def get_absolute_url(self):
         return reverse('home:product_detail', args=[self.slug, ])
 
@@ -52,7 +53,7 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     items_count = models.PositiveIntegerField()
-    attributes = models.JSONField(default=dict, )
+    attributes = models.JSONField(default=dict, null=True, blank=True)
 
     def __str__(self):
         return f"{self.product.title} - Variant"
