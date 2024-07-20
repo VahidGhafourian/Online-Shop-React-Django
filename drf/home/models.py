@@ -4,6 +4,7 @@ from account.models import User, Address
 from ckeditor.fields import RichTextField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from jsonschema import validate, ValidationError
+from django import forms
 
 class Category(models.Model):
     parent = models.ForeignKey('self', on_delete=models.DO_NOTHING, related_name='children', null=True, blank=True)
@@ -48,6 +49,41 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('home:product_detail', args=[self.slug, ])
 
+    def get_dynamic_fields(self):
+        """
+        Returns a list of form fields based on the attributes JSON field.
+        """
+        fields = []
+        attributes_schema = self.category.product_attributes_schema or {}
+        def create_field(name, field_type, label):
+            if field_type == 'string':
+                return forms.CharField(label=label)
+            elif field_type == 'number':
+                return forms.FloatField(label=label)
+            elif field_type == 'integer':
+                return forms.IntegerField(label=label)
+            elif field_type == 'boolean':
+                return forms.BooleanField(label=label)
+            elif field_type == 'object':
+                return forms.CharField(label=label, widget=forms.Textarea)  # For nested objects, you might need a custom widget
+            # Add more field types as needed
+            return forms.CharField(label=label)  # Default to CharField if type is unknown
+
+        def process_schema(schema, prefix='attributes_'):
+            properties = schema.get('properties', {})
+            for field, field_attrs in properties.items():
+                field_type = field_attrs.get('type')
+                field_label = field_attrs.get('title', field)
+                field_name = f'{prefix}{field}'
+
+                fields.append((field_name, create_field(field_name, field_type, field_label)))
+
+                if field_type == 'object':
+                    process_schema(field_attrs, prefix=f'{field_name}_')
+
+        process_schema(attributes_schema)
+        return fields
+
 class ProductVariant(models.Model):
     # id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
@@ -58,6 +94,40 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f"{self.product.title} - Variant"
 
+    def get_dynamic_fields(self):
+        """
+        Returns a list of form fields based on the attributes JSON field.
+        """
+        fields = []
+        attributes_schema = self.product.category.variant_attributes_schema or {}
+        def create_field(name, field_type, label):
+            if field_type == 'string':
+                return forms.CharField(label=label)
+            elif field_type == 'number':
+                return forms.FloatField(label=label)
+            elif field_type == 'integer':
+                return forms.IntegerField(label=label)
+            elif field_type == 'boolean':
+                return forms.BooleanField(label=label)
+            elif field_type == 'object':
+                return forms.CharField(label=label, widget=forms.Textarea)  # For nested objects, you might need a custom widget
+            # Add more field types as needed
+            return forms.CharField(label=label)  # Default to CharField if type is unknown
+
+        def process_schema(schema, prefix='attributes_'):
+            properties = schema.get('properties', {})
+            for field, field_attrs in properties.items():
+                field_type = field_attrs.get('type')
+                field_label = field_attrs.get('title', field)
+                field_name = f'{prefix}{field}'
+
+                fields.append((field_name, create_field(field_name, field_type, field_label)))
+
+                if field_type == 'object':
+                    process_schema(field_attrs, prefix=f'{field_name}_')
+
+        process_schema(attributes_schema)
+        return fields
 
 # class Order(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')

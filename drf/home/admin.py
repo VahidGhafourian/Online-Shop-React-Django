@@ -26,18 +26,43 @@ class ProductAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, change=False, **kwargs):
         return DynamicProductForm
 
-    def formfield_for_dbfield(self, db_field, request, **kwargs):
-        if isinstance(db_field, models.JSONField):
-            kwargs['widget'] = JSONEditor(
-                init_options={"mode": "code", "modes": ["view", "tree", "code"]}
-            )
-        return super().formfield_for_dbfield(db_field, request, **kwargs)
+    def get_fieldsets(self, request, obj=None):
+        # Start with the default fieldsets
+        fieldsets = [
+            (None, {'fields': ['title', 'slug', 'image', 'description', 'attributes']}),
+        ]
+
+        if obj:
+            # Get the dynamic fields for the current product instance
+            dynamic_fields = obj.get_dynamic_fields()
+            # Append dynamic fields to the fieldsets
+            if dynamic_fields:
+                field_names = [field_name for field_name, _ in dynamic_fields]
+                fieldsets.append((None, {'fields': field_names}))
+        return fieldsets
+
 
 class ProductVariantAdmin(admin.ModelAdmin):
-    list_display = ('product', 'price', 'items_count')
-
+    list_display = ('id', 'product', 'price', 'items_count')
+    # ordering = ['pk']
     def get_form(self, request, obj=None, change=False, **kwargs):
         return DynamicProductVariantForm
+
+
+    def get_fieldsets(self, request, obj=None):
+        # Start with the default fieldsets
+        fieldsets = [
+            (None, {'fields': ['product', 'price', 'items_count', 'attributes']}),
+        ]
+
+        if obj:
+            # Get the dynamic fields for the current product instance
+            dynamic_fields = obj.get_dynamic_fields()
+            # Append dynamic fields to the fieldsets
+            if dynamic_fields:
+                field_names = [field_name for field_name, _ in dynamic_fields]
+                fieldsets.append((None, {'fields': field_names}))
+        return fieldsets
 
 
 # admin.site.register(Category, CategoryAdmin)

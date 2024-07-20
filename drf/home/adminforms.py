@@ -20,6 +20,7 @@ class DynamicProductForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             category = self.instance.category
             self.add_dynamic_fields(category.product_attributes_schema)
+            self.set_initial_values()
 
     def add_dynamic_fields(self, schema, prefix="attributes_"):
         properties = schema.get('properties', {})
@@ -31,17 +32,36 @@ class DynamicProductForm(forms.ModelForm):
             field_name = f'{prefix}{field}'
 
             if field_type == 'string':
-                self.base_fields[field_name] = forms.CharField(label=field_label)
-                self.fields[field_name] = forms.CharField(label=field_label)
+                self.base_fields[field_name] = forms.CharField(label=field_label, required=False)
+                self.fields[field_name] = forms.CharField(label=field_label, required=False)
             elif field_type == 'number':
-                self.base_fields[field_name] = forms.FloatField(label=field_label)
-                self.fields[field_name] = forms.FloatField(label=field_label)
+                self.base_fields[field_name] = forms.FloatField(label=field_label, required=False)
+                self.fields[field_name] = forms.FloatField(label=field_label, required=False)
             elif field_type == 'integer':
-                self.base_fields[field_name] = forms.IntegerField(label=field_label)
-                self.fields[field_name] = forms.IntegerField(label=field_label)
+                self.base_fields[field_name] = forms.IntegerField(label=field_label, required=False)
+                self.fields[field_name] = forms.IntegerField(label=field_label, required=False)
             elif field_type == 'object':
                 self.add_dynamic_fields(field_attrs, prefix=f'{field_name}_')
             # Add more field types as needed
+
+    def set_initial_values(self):
+        """Set initial values for dynamic fields based on the attributes."""
+        if self.instance.attributes:
+            for field_name in self.fields:
+                if field_name.startswith('attributes_'):
+                    keys = field_name[len('attributes_'):].split('_')
+                    value = self.get_attribute_value(self.instance.attributes, keys)
+                    if value is not None:
+                        self.initial[field_name] = value
+
+    def get_attribute_value(self, attributes, keys):
+        """Retrieve nested attribute value from the attributes dictionary."""
+        for key in keys:
+            if isinstance(attributes, dict) and key in attributes:
+                attributes = attributes[key]
+            else:
+                return None
+        return attributes
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -79,6 +99,8 @@ class DynamicProductVariantForm(forms.ModelForm):
             category = product.category
 
             self.add_dynamic_fields(category.variant_attributes_schema)
+            self.set_initial_values()
+
 
     def add_dynamic_fields(self, schema, prefix="attributes_"):
         properties = schema.get('properties', {})
@@ -99,6 +121,25 @@ class DynamicProductVariantForm(forms.ModelForm):
             elif field_type == 'object':
                 self.add_dynamic_fields(field_attrs, prefix=f'{field_name}_')
             # Add more field types as needed
+
+    def set_initial_values(self):
+        """Set initial values for dynamic fields based on the attributes."""
+        if self.instance.attributes:
+            for field_name in self.fields:
+                if field_name.startswith('attributes_'):
+                    keys = field_name[len('attributes_'):].split('_')
+                    value = self.get_attribute_value(self.instance.attributes, keys)
+                    if value is not None:
+                        self.initial[field_name] = value
+
+    def get_attribute_value(self, attributes, keys):
+        """Retrieve nested attribute value from the attributes dictionary."""
+        for key in keys:
+            if isinstance(attributes, dict) and key in attributes:
+                attributes = attributes[key]
+            else:
+                return None
+        return attributes
 
     def save(self, commit=True):
         instance = super().save(commit=False)
