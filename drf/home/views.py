@@ -23,7 +23,7 @@ class GetProdutsView(APIView):
     """
     def get(self, request, category_slug=None):
         products = Product.objects.filter(available=True)
-        categories = Category.objects.filter(is_sub=False)
+        categories = Category.objects.all()
         if category_slug:
             categories = Category.objects.get(slug=category_slug)
             products = products.filter(category=categories)
@@ -44,7 +44,6 @@ class ProductDetailView(APIView):
     """
     def get(self, request, slug):
         product = Product.objects.get(Product, slug=slug)
-        print(type(product))
         product = ProductSerializer(instance=product)
         return Response(data={'product': product.data}, status=status.HTTP_200_OK)
 """
