@@ -7,7 +7,7 @@ from jsonschema import validate, ValidationError
 from django import forms
 
 class Category(models.Model):
-    parent = models.ForeignKey('self', on_delete=models.DO_NOTHING, related_name='children', null=True, blank=True)
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='children', null=True, blank=True)
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,7 +27,7 @@ class Category(models.Model):
         return reverse('home:category_filter', args=[self.slug])
 
 class Product(models.Model):
-    category = models.ForeignKey(Category, related_name='products', on_delete=models.DO_NOTHING, limit_choices_to={'children__isnull': True})
+    category = models.ForeignKey(Category, related_name='products', on_delete=models.SET_NULL, null=True, limit_choices_to={'children__isnull': True})
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     image = models.ImageField(null=True, blank=True)

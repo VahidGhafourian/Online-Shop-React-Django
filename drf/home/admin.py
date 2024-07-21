@@ -29,7 +29,7 @@ class ProductAdmin(admin.ModelAdmin):
     def get_fieldsets(self, request, obj=None):
         # Start with the default fieldsets
         fieldsets = [
-            (None, {'fields': ['title', 'slug', 'image', 'description', 'attributes']}),
+            (None, {'fields': ['category', 'title', 'slug', 'image', 'description', 'attributes']}),
         ]
 
         if obj:
