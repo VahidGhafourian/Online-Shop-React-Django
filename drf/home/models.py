@@ -16,7 +16,7 @@ class Category(models.Model):
     variant_attributes_schema = models.JSONField(default=dict, null=True, blank=True)
 
     class Meta:
-        ordering = ('title', )
+        # ordering = ('title', )
         verbose_name = 'category'
         verbose_name_plural = 'Categories'
 
@@ -27,7 +27,11 @@ class Category(models.Model):
         return reverse('home:category_filter', args=[self.slug])
 
 class Product(models.Model):
-    category = models.ForeignKey(Category, related_name='products', on_delete=models.SET_NULL, null=True, limit_choices_to={'children__isnull': True})
+    category = models.ForeignKey(Category,
+                                 related_name='products',
+                                 on_delete=models.SET_NULL,
+                                 null=True,
+                                 limit_choices_to={'children__isnull': True})
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     image = models.ImageField(null=True, blank=True)
@@ -37,56 +41,21 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        ordering = ('title', )
+    # class Meta:
+        # ordering = ('title', )
 
     def __str__(self):
         return self.title
 
-    def validate_attributes(self):
-        a = validate(instance=self.attributes, schema=self.category.product_attributes_schema)
-        print(a)
+    # def validate_attributes(self):
+    #     a = validate(instance=self.attributes, schema=self.category.product_attributes_schema)
+    #     print(a)
 
     def get_absolute_url(self):
         return reverse('home:product_detail', args=[self.slug, ])
 
-    def get_dynamic_fields(self):
-        """
-        Returns a list of form fields based on the attributes JSON field.
-        """
-        fields = []
-        attributes_schema = self.category.product_attributes_schema or {}
-        def create_field(name, field_type, label):
-            if field_type == 'string':
-                return forms.CharField(label=label)
-            elif field_type == 'number':
-                return forms.FloatField(label=label)
-            elif field_type == 'integer':
-                return forms.IntegerField(label=label)
-            elif field_type == 'boolean':
-                return forms.BooleanField(label=label)
-            elif field_type == 'object':
-                return forms.CharField(label=label, widget=forms.Textarea)  # For nested objects, you might need a custom widget
-            # Add more field types as needed
-            return forms.CharField(label=label)  # Default to CharField if type is unknown
-
-        def process_schema(schema, prefix='attributes_'):
-            properties = schema.get('properties', {})
-            for field, field_attrs in properties.items():
-                field_type = field_attrs.get('type')
-                field_label = field_attrs.get('title', field)
-                field_name = f'{prefix}{field}'
-
-                fields.append((field_name, create_field(field_name, field_type, field_label)))
-
-                if field_type == 'object':
-                    process_schema(field_attrs, prefix=f'{field_name}_')
-
-        process_schema(attributes_schema)
-        return fields
 
 class ProductVariant(models.Model):
-    # id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     items_count = models.PositiveIntegerField()
@@ -94,8 +63,6 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.title} - Variant"
-
-    def get_dynamic_fields(self):
         """
         Returns a list of form fields based on the attributes JSON field.
         """
