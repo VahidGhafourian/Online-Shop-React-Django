@@ -128,7 +128,7 @@ class UserCheckLoginPhone(APIView): # NEW
 class GenerateOTP(APIView):
     """
     Method: POST \n
-        Use to generate and send OTP to the provided phone number. \n
+        Use to generate and send OTP to the provided phone number.\n
     Input: \n
         - phone_number: 11 digits \n
     Return: \n

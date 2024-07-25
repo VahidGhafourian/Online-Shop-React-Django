@@ -21,9 +21,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f'{self.last_name} - {self.email} - {self.phone_number}'
 
-    def is_staff(self):
-        return self.is_staff
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -34,16 +31,16 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class OtpCode(models.Model):
     phone_number = models.CharField(max_length=11, null=True, unique=True)
-    email = models.EmailField(max_length=255, null=True, unique=True)
+    # email = models.EmailField(max_length=255, null=True, unique=True)
     code = models.PositiveSmallIntegerField()
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=['email'], condition=models.Q(email__isnull=False),
-                name='unique_non_null_email_otp'
-            ),
+            # models.UniqueConstraint(
+            #     fields=['email'], condition=models.Q(email__isnull=False),
+            #     name='unique_non_null_email_otp'
+            # ),
             models.UniqueConstraint(
                 fields=['phone_number'], condition=models.Q(phone_number__isnull=False),
                 name='unique_non_null_phone_number_otp'
@@ -65,7 +62,13 @@ class Address(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
 
-    objects = models.Manager()
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user','is_default'], condition=models.Q(is_default=True),
+                name='unique_default_address'
+            ),
+        ]
 
     def __str__(self):
         return f'{self.is_default} - {self.postal_code} - {self.user}'
