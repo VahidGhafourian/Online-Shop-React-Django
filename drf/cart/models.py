@@ -1,4 +1,6 @@
 from django.db import models
+from products.models import ProductVariant
+from account.models import User
 
 class Basket(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,)
@@ -16,4 +18,3 @@ class BasketItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} in cart of {self.cart.user.username}"
-
