@@ -13,10 +13,11 @@ class Payment(models.Model):
     def __str__(self):
         return f'Payment for Order {self.order.id} {self.status=}'
 
-class Transaction(models.Model):
+class Transaction(models.Model): #TODO: is this model ok? or we should give a foreignkey to payment?
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=10)
+    # payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='transactions')
     transaction_id = models.CharField(max_length=100)
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50)
