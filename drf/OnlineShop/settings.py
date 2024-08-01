@@ -42,7 +42,10 @@ INSTALLED_APPS = [
 
     # Local apps
     'account.apps.AccountConfig',
-    'home.apps.HomeConfig',
+    'products.apps.ProductsConfig',
+    'cart.apps.CartConfig',
+    'orders.apps.OrdersConfig',
+    'payments.apps.PaymentsConfig',
 ]
 
 MIDDLEWARE = [

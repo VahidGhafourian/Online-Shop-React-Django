@@ -53,9 +53,9 @@ class OtpCode(models.Model):
 
 class Address(models.Model):
     is_default = models.BooleanField(default=False)
-    country = models.CharField(max_length=124)
-    state = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
+    country = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
     street = models.CharField(max_length=255)
     postal_code = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
