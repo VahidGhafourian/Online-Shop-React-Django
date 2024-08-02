@@ -8,7 +8,7 @@ from .adminforms import ProductAdminForm, ProductVariantAdminForm
 
 class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
-    list_display = ('title', 'parent', 'slug')
+    list_display = ('title', 'slug', 'parent')
     formfield_overrides = {
         JSONField: {
             "widget": JSONEditor(

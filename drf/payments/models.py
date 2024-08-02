@@ -16,7 +16,7 @@ class Payment(models.Model):
 class Transaction(models.Model): #TODO: is this model ok? or we should give a foreignkey to payment?
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10)
+    amount = models.PositiveBigIntegerField()
     # payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='transactions')
     transaction_id = models.CharField(max_length=100)
     timestamp = models.DateTimeField(auto_now_add=True)

@@ -2,14 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Product, Category # Order, OrderItem, Payment
 from .serializers import ProductSerializer, CategorySerializer # OrderSerializer
-from account.serializers import AddressSerializer
-from account.models import Address
 from rest_framework import status
 from utils import generate_transactio_id
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import redirect
-import requests
-from django.http import JsonResponse
 
 class ProductsList(APIView):
     """
