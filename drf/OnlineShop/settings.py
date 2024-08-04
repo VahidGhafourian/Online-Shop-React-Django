@@ -42,11 +42,11 @@ INSTALLED_APPS = [
     'django_extensions',
 
     # Local apps
-    'account.apps.AccountConfig',
-    'products.apps.ProductsConfig',
-    'cart.apps.CartConfig',
-    'orders.apps.OrdersConfig',
-    'payments.apps.PaymentsConfig',
+    'account',
+    'products',
+    'cart',
+    'orders',
+    'payments',
 ]
 
 MIDDLEWARE = [
