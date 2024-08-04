@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'ckeditor',
     'jsoneditor',
     'django_jsonform',
+    'django_extensions',
 
     # Local apps
     'account.apps.AccountConfig',
