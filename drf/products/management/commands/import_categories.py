@@ -2,6 +2,8 @@ import csv
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 from products.models import Category
+from tqdm import tqdm
+
 
 class Command(BaseCommand):
     help = 'Import categories from a CSV file'
@@ -16,10 +18,8 @@ class Command(BaseCommand):
 
     def get_or_create_category(self, title, parent=None):
         slug = slugify(title, allow_unicode=True)
-        # print(slug)
         category = Category.objects.filter(slug=slug).first()
         if category is None:
-            # print(f'{category=} || {slug=}')
             category = Category.objects.create(
                 title=title,
                 slug=slug,
@@ -29,12 +29,12 @@ class Command(BaseCommand):
 
     def import_categories_from_csv(self, csv_file_path):
         with open(csv_file_path, newline='', encoding='utf-8') as csvfile:
-            csv_reader = csv.reader(csvfile)
-            for row in csv_reader:
+            csv_reader = list(csv.reader(csvfile))
+            total_rows = len(csv_reader)
+
+            for row in tqdm(csv_reader, total=total_rows, desc="Importing Categories", unit="row", ncols=100, bar_format='{l_bar}\033[32m{bar}\033[0m| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'):
                 parent = None
-                # print('='*30)
                 for title in row:
                     if title:
-                      # print(f'{title=}')
-                      category = self.get_or_create_category(title, parent)
-                      parent = category
+                        category = self.get_or_create_category(title, parent)
+                        parent = category
