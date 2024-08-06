@@ -17,10 +17,13 @@ class AddToCart(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = CartItemSerializer(data=request.data)
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        data = request.data
+        data['cart'] = cart.id
+        #TODO: if user added one product variant two times add ++ to previous item_count
+        serializer = CartItemSerializer(data=data)
         if serializer.is_valid():
-            cart, created = Cart.objects.get_or_create(user=request.user)
-            serializer.save(cart=cart)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

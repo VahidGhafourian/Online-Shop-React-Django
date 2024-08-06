@@ -4,18 +4,20 @@ from .models import Cart, CartItem
 class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
-        fields = ['id', 'cart', 'product', 'quantity']
+        fields = ['id', 'cart', 'product_variant', 'items_count']
+
+
 
 class CartSerializer(serializers.ModelSerializer):
-    items = CartItemSerializer(many=True)
+    items = CartItemSerializer(many=True, allow_null=True, required=False)
 
     class Meta:
         model = Cart
         fields = ['id', 'user', 'items']
 
-    def create(self, validated_data):
-        items_data = validated_data.pop('items')
-        cart = Cart.objects.create(**validated_data)
-        for item_data in items_data:
-            CartItem.objects.create(cart=cart, **item_data)
-        return cart
+    # def create(self, validated_data):
+    #     items_data = validated_data.pop('items')
+    #     cart = Cart.objects.create(**validated_data)
+    #     for item_data in items_data:
+    #         CartItem.objects.create(cart=cart, **item_data)
+    #     return cart

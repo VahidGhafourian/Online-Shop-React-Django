@@ -26,3 +26,6 @@ env
 .jpg
 .png
 Todos.py
+db.sqlite3
+.gitignore
+product-category-tree.csv

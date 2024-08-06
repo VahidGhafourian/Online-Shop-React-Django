@@ -32,7 +32,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 class OtpCode(models.Model):
     phone_number = models.CharField(max_length=11, null=True, unique=True)
     # email = models.EmailField(max_length=255, null=True, unique=True)
-    code = models.PositiveSmallIntegerField()
+    # TODO: change code field to charField;
+    code = models.CharField(max_length=7)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
