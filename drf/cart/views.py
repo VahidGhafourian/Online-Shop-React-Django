@@ -4,14 +4,24 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Cart, CartItem
 from .serializers import CartSerializer, CartItemSerializer
+from payments.models import Discount
 
 class CartDetail(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         cart, created = Cart.objects.get_or_create(user=request.user)
+        cart = self.apply_discounts(cart)
+
         serializer = CartSerializer(cart)
         return Response(serializer.data)
+
+    def apply_discounts(self, cart):
+        for item in cart.items.all():
+            discounts = Discount.objects.filter(applicable_to=item.product, is_active=True)
+            for discount in discounts:
+                item.price -= discount.calculate_discount(item.price)
+        return cart
 
 class AddToCart(APIView):
     permission_classes = [IsAuthenticated]

@@ -6,6 +6,8 @@ from .models import Payment, Transaction
 from .serializers import PaymentSerializer, TransactionSerializer
 from .models import Discount, Coupon
 from .serializers import DiscountSerializer, CouponSerializer, ApplyCouponSerializer
+from cart.models import Cart
+from cart.serializers import CartSerializer
 
 class PaymentsList(APIView):
     permission_classes = [IsAuthenticated]
@@ -167,14 +169,26 @@ class CouponDetail(APIView):
         return Response(serializer.data)
 
 class ApplyCoupon(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = ApplyCouponSerializer(data=request.data)
         if serializer.is_valid():
             code = serializer.validated_data['code']
             try:
-                coupon = Coupon.objects.get(code=code, is_active=True)
-                discount = coupon.discount
-                return Response({'discount': discount.amount}, status=status.HTTP_200_OK)
+                coupon = Coupon.objects.get(code=code, is_active=True).first()
+                cart = Cart.objects.get(user=request.user)
+
+                if coupon and coupon.is_valid() and cart.total >= coupon.minimum_order_value:
+                    for item in cart.items.all():
+                        if item.product in coupon.applicable_to.all() or item.product.category in coupon.applicable_categories.all():
+                            item.price -= coupon.calculate_discount(item.price)
+                    coupon.usage_count += 1
+                    coupon.save()
+                    cart.save()
+                    serializer = CartSerializer(cart)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+
             except Coupon.DoesNotExist:
                 return Response({'error': 'Invalid or inactive coupon code'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
