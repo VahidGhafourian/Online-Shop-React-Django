@@ -118,14 +118,12 @@ class UserCheckLoginPhone(APIView): # NEW
     def post(self, request, *args, **kwargs):
         phone_number = request.data.get('phoneNumber')
 
-        try:
-            user = User.objects.get(phone_number=phone_number)
-            # User with this phone number already exists
+        if User.objects.filter(phone_number=phone_number).exists():
             return Response({'newUser': False, 'message': 'User with this phone number already exists'}, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
+        else:
             return Response({'newUser': True, 'message': 'Phone number is New'}, status=status.HTTP_200_OK)
 
-class GenerateOTP(APIView):
+class GenerateSendOTP(APIView):
     """
     Method: POST \n
         Use to generate and send OTP to the provided phone number.\n
@@ -153,7 +151,7 @@ class GenerateOTP(APIView):
             return Response({'success': True, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
         else:
             print(ser_OtpCode.errors)
-            return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success': False, 'message': ser_OtpCode.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -172,21 +170,20 @@ class VerifyOTP(APIView):
         data = json.loads(request.body.decode('utf-8'))
         phone_number = data.get('phone_number')
         entered_otp = data.get('otp')
-        ser_data = UserRegisterSerializer(data=data)
+        user_serializer = UserRegisterSerializer(data=data)
         if OtpCode.objects.filter(phone_number=phone_number, code=entered_otp).exists():
             # TODO: Register new user with this phone number
-            if ser_data.is_valid():
-                ser_data.create(ser_data.validated_data)
+            if user_serializer.is_valid():
+                user_serializer.create(user_serializer.validated_data)
                 user = authenticate(request, phone_number=phone_number, code=entered_otp)
                 if user:
                     login(request, user)
             else:
-                print(ser_data.errors)
+                print(user_serializer.errors)
             # OTP is valid, you can proceed to registration
             return Response({'success': True, 'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
         else:
             print(f"Can't find the {entered_otp=} with {phone_number=}")
-            del ser_data
             return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserInfoView(APIView):
