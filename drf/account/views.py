@@ -4,107 +4,32 @@ from .models import OtpCode, User, Address
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
-from .serializers import UserRegisterSerializer, OtpCodeSerializer, UserSerializer, AddressSerializer
+from .serializers import UserRegisterSerializer, OtpCodeSerializer, AddressSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
+
 import json
 
-# class UserRegisterView(APIView):
-#     """
-#         Method: POST \n
-#             Use for user registration \n
-#         inputs: \n
-#             - phone_number: 11 digits \n
-#             - email: at least 6 chars. max 255 chars \n
-#             - full_name: max 255 chars \n
-#             - password: at least 6 chars \n
-#             - password2: at least 6 chars. must be exact password \n
-#         return: \n
-#             - success: True if user created successfully (201), then should be redirected to verify url. Otherwise return errors list (400). \n
-#     """
-#     serializer_class = UserRegisterSerializer
-
-#     def post(self, request):
-#         ser_data = UserRegisterSerializer(data=request.POST)
-#         if ser_data.is_valid():
-#             random_code = random.randint(1000, 9999)
-#             send_otp_code(ser_data.validated_data['phone_number'], random_code)
-#             ser_OtpCode = OtpCodeSerializer(data={'code': random_code,
-#                                                   'phone_number': ser_data.validated_data['phone_number']})
-#             if ser_OtpCode.is_valid():
-#                 ser_OtpCode.save()
-#             request.session['user_registration_info'] = {
-#                 # 'ser_data': ser_data,
-#                 'phone_number': ser_data.validated_data['phone_number'],
-#                 'email': ser_data.validated_data['email'],
-#                 'full_name': ser_data.validated_data['full_name'],
-#                 'password': ser_data.validated_data['password'],
-#                 'password2': ser_data.validated_data['password2'],
-#             }
-#             # ser_data.create(ser_data.validated_data)
-#             return Response({'success': True}, status=status.HTTP_201_CREATED)
-#         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class UserRegisterVerifyCodeView(APIView):
-#     """
-#         Method: POST \n
-#             Use for confirm otp code \n
-#         input: \n
-#             - code: inserted otp code form user. 4 digits \n
-#         return: \n
-#             - success: True if user created successfully (201). Otherwise False (400). \n
-#     """
-#     serializer_class = OtpCodeSerializer
-#     def post(self, request, *args, **kwargs):
-#         user_session = request.session['user_registration_info']
-#         code_instance = OtpCode.objects.get(phone_number=user_session['phone_number'])
-#         form = OtpCodeSerializer(data=request.POST, partial=True)
-#         if form.is_valid():
-#             cd = form.validated_data
-#             if cd['code'] == code_instance.code:
-#                 ser_user = UserRegisterSerializer(data=user_session, partial=True)
-#                 print(ser_user)
-#                 if ser_user.is_valid():
-#                     ser_user.create(ser_user.validated_data)
-#                     return Response({'success': True}, status=status.HTTP_201_CREATED)
-#         return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
 # class UserLogoutView(APIView):
+#     permission_classes = [IsAuthenticated]
 #     """
-#         Method: GET \n
+#         Method: POST \n
 #             Use for user logout \n
 #             - User must be logged in before this. \n
 #         return: \n
 #             - success: True if user successfully logged out (200). Otherwise False (400). \n
 #     """
 
-#     def get(self, request, *args, **kwargs):
+#     def post(self, request, *args, **kwargs):
 #         if request.user:
 #             logout(request)
 #             return Response({'success': True}, status=status.HTTP_200_OK)
 #         return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
-
-# class VerifyPassword(APIView):
-    # """
-    #     Method: POST \n
-    #         Use for user login \n
-    #     input: \n
-    #         - phone_number: 11 digits \n
-    #         - password: at least 6 chars \n
-    #     return: \n
-    #         - success: True if user successfully logged in (200). Otherwise False(401). \n
-    # """
-    # def post(self, request, *args, **kwargs):
-    #     phone_number = request.data.get('phone_number')
-    #     password = request.data.get('password')
-    #     user = authenticate(request, phone_number=phone_number, password=password)
-    #     if user:
-    #         login(request, user)
-    #         return Response({'success': True}, status=status.HTTP_200_OK)
-    #     return Response({'success': False}, status=status.HTTP_401_UNAUTHORIZED)
 
 class UserCheckLoginPhone(APIView): # NEW
     """
@@ -165,23 +90,40 @@ class VerifyOTP(APIView):
     Return:
         - success: True if OTP is valid, False otherwise
         - message: Informational message
+        - access: JWT access token if OTP is valid
+        - refresh: JWT refresh token if OTP is valid
     """
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body.decode('utf-8'))
         phone_number = data.get('phone_number')
         entered_otp = data.get('otp')
-        user_serializer = UserRegisterSerializer(data=data)
         if OtpCode.objects.filter(phone_number=phone_number, code=entered_otp).exists():
-            # TODO: Register new user with this phone number
-            if user_serializer.is_valid():
-                user_serializer.create(user_serializer.validated_data)
-                user = authenticate(request, phone_number=phone_number, code=entered_otp)
-                if user:
-                    login(request, user)
+
+            user_exists = User.objects.filter(phone_number=phone_number).exists()
+            if user_exists:
+                user = User.objects.get(phone_number=phone_number)
             else:
-                print(user_serializer.errors)
-            # OTP is valid, you can proceed to registration
-            return Response({'success': True, 'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
+                user_serializer = UserRegisterSerializer(data={**data, 'phone_number': phone_number})
+
+                if user_serializer.is_valid():
+                    user = user_serializer.save()
+                else:
+                    print(user_serializer.errors)
+                    return Response({'success': False, 'message': 'Cannot Create new user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Generate tokens for the registered user
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+
+            return Response({
+                'success': True,
+                'message': 'OTP verified successfully',
+                'access': access_token,
+                'refresh': refresh_token,
+                }, status=status.HTTP_200_OK)
+
+
         else:
             print(f"Can't find the {entered_otp=} with {phone_number=}")
             return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
@@ -191,8 +133,39 @@ class UserInfoView(APIView):
 
     def get(self, request):
         user = request.user
-        serializer = UserSerializer(user)
+        serializer = UserRegisterSerializer(user)
         return Response(serializer.data)
+
+    """
+    Method: POST
+        Use to set or update the password for the authenticated user.
+    Input:
+        - password: New password
+        - confirm_password: Confirmation of the new password
+    Return:
+        - success: True if the password was updated successfully
+        - message: Informational message
+    """
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        data = request.data
+        user_serializer = UserRegisterSerializer(instance=user, data=data, partial=True)
+
+        if user_serializer.is_valid():
+            # Save the user with the new password
+            user = user_serializer.save()
+
+            return Response({
+                'success': True,
+                'message': 'Password updated successfully'
+            }, status=status.HTTP_200_OK)
+        else:
+            # Return validation errors
+            return Response({
+                'success': False,
+                'message': 'Password update failed',
+                'errors': user_serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class AddressView(APIView):
     permission_classes = [IsAuthenticated]

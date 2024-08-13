@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, OtpCode, Address
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 def clean_email(value):
@@ -8,12 +9,12 @@ def clean_email(value):
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    confirm_password = serializers.CharField(write_only=True, required=True)
-    password = serializers.CharField(write_only=True, required=True)
+    confirm_password = serializers.CharField(write_only=True, required=False)
+    password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ('email', 'phone_number', 'first_name', 'last_name', 'password', 'confirm_password')
+        fields = '__all__'
 
         extra_kwargs = {
             'password': {'write_only': True},
@@ -21,11 +22,17 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        del validated_data['confirm_password']
-        return User.objects.get_or_create(**validated_data)
+        validated_data.pop('confirm_password', None)
+
+        user, created = User.objects.get_or_create(phone_number=validated_data['phone_number'])
+        if created:
+            if 'password' in validated_data:
+                user.set_password(validated_data['password'])
+            user.save()
+        return user
 
     def validate(self, data):
-        if data['password'] != data['confirm_password']:
+        if 'password' in data and 'confirm_password' in data and data['password'] != data['confirm_password']:
             raise serializers.ValidationError('passwords must mach')
         return data
 
@@ -33,19 +40,20 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         """
         Update and return an existing `User` instance, given the validated data.
         """
-        instance.email = validated_data.get('email', instance.email)
-        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.password = validated_data.get('password', instance.password)
+        for attr, value in validated_data.items():
+            if attr != 'password':
+                setattr(instance, attr, value)
+        if 'password' in validated_data:
+            instance.set_password(validated_data['password'])
+
         instance.save()
         return instance
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'email', 'phone_number', 'first_name', 'last_name', 'date_joined')
+# class UserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ('id', 'email', 'phone_number', 'first_name', 'last_name', 'date_joined')
 
 class OtpCodeSerializer(serializers.ModelSerializer):
     class Meta:
