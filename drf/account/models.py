@@ -32,7 +32,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
 
 class OtpCode(models.Model):
-    phone_number = models.CharField(max_length=11, null=True, unique=True)
+    phone_number = models.CharField(max_length=13, null=True, unique=True)
     # email = models.EmailField(max_length=255, null=True, unique=True)
     # TODO: change code field to charField;
     code = models.CharField(max_length=7)

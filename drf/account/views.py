@@ -75,7 +75,7 @@ class GenerateSendOTP(APIView):
             # send_otp_code(phone_number, otp_code)
             return Response({'success': True, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
         else:
-            print(ser_OtpCode.errors)
+            # print(ser_OtpCode.errors)
             return Response({'success': False, 'message': ser_OtpCode.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -94,7 +94,7 @@ class VerifyOTP(APIView):
         - refresh: JWT refresh token if OTP is valid
     """
     def post(self, request, *args, **kwargs):
-        data = json.loads(request.body.decode('utf-8'))
+        data = request.data
         phone_number = data.get('phone_number')
         entered_otp = data.get('otp')
         if OtpCode.objects.filter(phone_number=phone_number, code=entered_otp).exists():
@@ -108,7 +108,7 @@ class VerifyOTP(APIView):
                 if user_serializer.is_valid():
                     user = user_serializer.save()
                 else:
-                    print(user_serializer.errors)
+                    # print(user_serializer.errors)
                     return Response({'success': False, 'message': 'Cannot Create new user.'}, status=status.HTTP_400_BAD_REQUEST)
 
                 # Generate tokens for the registered user
@@ -125,7 +125,7 @@ class VerifyOTP(APIView):
 
 
         else:
-            print(f"Can't find the {entered_otp=} with {phone_number=}")
+            # print(f"Can't find the {entered_otp=} with {phone_number=}")
             return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserInfoView(APIView):
@@ -135,7 +135,6 @@ class UserInfoView(APIView):
         user = request.user
         serializer = UserRegisterSerializer(user)
         return Response(serializer.data)
-
     """
     Method: POST
         Use to set or update the password for the authenticated user.
@@ -177,13 +176,11 @@ class AddressView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        new_address_data = request.data.get('newAddressForm', {})
-        new_address_data['user'] = request.user.id
-
-        serializer = AddressSerializer(data=new_address_data)
+        data = request.data.dict()
+        data['user'] = request.user.id
+        serializer = AddressSerializer(data=data)
         if serializer.is_valid():
-            # If the serializer is valid, save the new address
-            serializer.save(user=request.user)  # Assuming the user is authenticated
+            serializer.save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
