@@ -6,58 +6,65 @@ from .models import Cart, CartItem
 from .serializers import CartSerializer, CartItemSerializer
 from payments.models import Discount
 
-class CartDetail(APIView):
+class CartView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get_cart(self, request):
         cart, created = Cart.objects.get_or_create(user=request.user)
-        cart = self.apply_discounts(cart)
-
-        serializer = CartSerializer(cart)
-        return Response(serializer.data)
-
-    def apply_discounts(self, cart):
-        for item in cart.items.all():
-            discounts = Discount.objects.filter(applicable_to=item.product, is_active=True)
-            for discount in discounts:
-                item.price -= discount.calculate_discount(item.price)
         return cart
 
-class AddToCart(APIView):
-    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        """Retrieve the cart details."""
+        cart = self.get_cart(request)
+        cart = self.apply_discounts(cart)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        cart, created = Cart.objects.get_or_create(user=request.user)
+        """Add an item to the cart."""
+        cart = self.get_cart(request)
         data = request.data
         data['cart'] = cart.id
-        #TODO: if user added one product variant two times add ++ to previous item_count
-        serializer = CartItemSerializer(data=data)
+
+        # Check if the item already exists and update quantity if necessary
+        existing_item = CartItem.objects.filter(cart=cart, product_variant=data.get('product_variant')).first()
+        if existing_item:
+            data['item_count'] = existing_item.item_count + data.get('item_count', 1)
+            serializer = CartItemSerializer(existing_item, data=data, partial=True)
+        else:
+            serializer = CartItemSerializer(data=data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class RemoveItemFromCart(APIView):
-    permission_classes = [IsAuthenticated]
-
     def delete(self, request, item_id):
+        """Remove an item from the cart."""
         try:
             cart_item = CartItem.objects.get(cart__user=request.user, id=item_id)
+            cart_item.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except CartItem.DoesNotExist:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
-        cart_item.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-class UpdateCartItem(APIView):
-    permission_classes = [IsAuthenticated]
 
     def put(self, request, item_id):
+        """Update an item in the cart."""
         try:
             cart_item = CartItem.objects.get(cart__user=request.user, id=item_id)
+            serializer = CartItemSerializer(cart_item, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         except CartItem.DoesNotExist:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = CartItemSerializer(cart_item, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def apply_discounts(self, cart):
+        """Apply discounts to the cart items."""
+        for item in cart.items.all():
+            discounts = Discount.objects.filter(applicable_to=item.product, is_active=True)
+            for discount in discounts:
+                item.price -= discount.calculate_discount(item.price)
+        return cart

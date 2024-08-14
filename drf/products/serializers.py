@@ -1,24 +1,46 @@
 from rest_framework import serializers
-from .models import Product, Category, ProductVariant # Order, OrderItem, Coupon, Payment
+from .models import ProductVariant # Order, OrderItem, Coupon, Payment
 from account.models import Address
 from account.serializers import AddressSerializer
+from rest_framework import serializers
+from .models import Category, Product, ProductVariant, ProductImage
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = [
+            'id', 'parent', 'title', 'slug',
+            'created_at', 'updated_at',
+            'product_attributes_schema', 'variant_attributes_schema'
+        ]
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = [
+            'id', 'product', 'image', 'alt_text'
+        ]
 
 class ProductVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductVariant
-        fields = '__all__'
+        fields = [
+            'id', 'product', 'price',
+            'items_count', 'attributes'
+        ]
 
 class ProductSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
+    images = ProductImageSerializer(source='productimage_set', many=True, read_only=True)
 
     class Meta:
         model = Product
-        fields = '__all__'
-        
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
+        fields = [
+            'id', 'category', 'title', 'slug',
+            'description', 'available', 'attributes',
+            'created_at', 'updated_at', 'variants', 'images'
+        ]
+
 
 # class OrderItemSerializer(serializers.ModelSerializer):
 #     class Meta:

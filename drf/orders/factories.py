@@ -1,8 +1,8 @@
 import factory
 from factory.django import DjangoModelFactory
 from .models import Order, OrderItem
-from account.factory import UserFactory
-from products.factory import ProductFactory
+from account.factories import UserFactory
+from products.factories import ProductFactory
 
 
 class OrderFactory(DjangoModelFactory):

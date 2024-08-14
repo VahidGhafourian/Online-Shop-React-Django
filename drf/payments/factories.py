@@ -2,8 +2,8 @@ import factory
 from factory.django import DjangoModelFactory
 from faker import Faker
 from .models import Payment, Transaction, Discount, Coupon
-from orders.factory import OrderFactory
-from account.factory import UserFactory
+from orders.factories import OrderFactory
+from account.factories import UserFactory
 
 
 class PaymentFactory(DjangoModelFactory):

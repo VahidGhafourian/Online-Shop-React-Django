@@ -4,7 +4,7 @@ from .managers import UserManager
 from django.utils.translation import gettext_lazy as _
 
 class User(AbstractBaseUser, PermissionsMixin):
-    phone_number = models.CharField(max_length=11, unique=True)
+    phone_number = models.CharField(max_length=13, unique=True)
     password = models.CharField(_("password"), max_length=128, null=True)
     first_name = models.CharField(max_length=100, null=True)
     last_name = models.CharField(max_length=100, null=True)

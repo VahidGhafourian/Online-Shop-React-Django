@@ -2,8 +2,8 @@ import factory
 from factory.django import DjangoModelFactory
 from faker import Faker
 from .models import Cart, CartItem
-from account.factory import UserFactory
-from products.factory import ProductVariantFactory
+from account.factories import UserFactory
+from products.factories import ProductVariantFactory
 
 class CartFactory(DjangoModelFactory):
     class Meta:

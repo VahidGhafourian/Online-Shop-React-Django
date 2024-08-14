@@ -49,7 +49,7 @@ class Product(models.Model):
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.PositiveIntegerField()
     items_count = models.PositiveIntegerField()
     attributes = models.JSONField(default=dict, null=True, blank=True)
 
