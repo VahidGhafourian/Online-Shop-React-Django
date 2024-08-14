@@ -11,7 +11,7 @@ class Cart(models.Model):
         return f"{self.id}"
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
     items_count = models.PositiveIntegerField(default=1)
     added_at = models.DateTimeField(auto_now_add=True)

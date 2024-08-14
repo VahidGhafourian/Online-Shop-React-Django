@@ -32,7 +32,7 @@ class Discount(models.Model):
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2)
     valid_from = models.DateTimeField()
     valid_to = models.DateTimeField()
-    active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     applicable_to = models.ManyToManyField(ProductVariant, blank=True)
     applicable_categories = models.ManyToManyField(Category, blank=True)
 
