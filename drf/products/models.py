@@ -3,7 +3,10 @@ from django.urls import reverse
 from ckeditor.fields import RichTextField
 
 class Category(models.Model):
-    parent = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='children', null=True, blank=True)
+    parent = models.ForeignKey('self',
+                               on_delete=models.SET_NULL,
+                               related_name='children',
+                               null=True, blank=True)
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,7 +30,7 @@ class Product(models.Model):
                                  related_name='products',
                                  on_delete=models.SET_NULL,
                                  null=True,
-                                 limit_choices_to={'children__isnull': True})
+                                 limit_choices_to={'children__isnull': True},)
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     # image = models.ImageField(null=True, blank=True)
@@ -48,7 +51,9 @@ class Product(models.Model):
 
 
 class ProductVariant(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    product = models.ForeignKey(Product,
+                                on_delete=models.CASCADE,
+                                related_name='variants')
     price = models.PositiveIntegerField()
     items_count = models.PositiveIntegerField()
     attributes = models.JSONField(default=dict, null=True, blank=True)
@@ -57,11 +62,13 @@ class ProductVariant(models.Model):
         return f"{self.product.title} - Variant"
 
 class ProductImage(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product,
+                                on_delete=models.CASCADE,
+                                related_name='images')
     image = models.ImageField(upload_to='product_images/')
     alt_text = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return f"Image of {self.product.name}"
+        return f"Image of {self.product.title}"
 
 # TODO: Tag, Review, Vendor, Inventory

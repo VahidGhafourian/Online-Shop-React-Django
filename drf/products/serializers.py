@@ -1,7 +1,4 @@
 from rest_framework import serializers
-from .models import ProductVariant # Order, OrderItem, Coupon, Payment
-from account.models import Address
-from account.serializers import AddressSerializer
 from rest_framework import serializers
 from .models import Category, Product, ProductVariant, ProductImage
 
@@ -10,7 +7,6 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = [
             'id', 'parent', 'title', 'slug',
-            'created_at', 'updated_at',
             'product_attributes_schema', 'variant_attributes_schema'
         ]
 
@@ -30,15 +26,16 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         ]
 
 class ProductSerializer(serializers.ModelSerializer):
-    variants = ProductVariantSerializer(many=True, read_only=True)
+    # variants = ProductVariantSerializer(many=True, read_only=True)
     images = ProductImageSerializer(source='productimage_set', many=True, read_only=True)
 
     class Meta:
         model = Product
         fields = [
-            'id', 'category', 'title', 'slug',
-            'description', 'available', 'attributes',
-            'created_at', 'updated_at', 'variants', 'images'
+            'id', 'category',
+            'title', 'slug',
+            'description', 'available',
+            'attributes','images'
         ]
 
 

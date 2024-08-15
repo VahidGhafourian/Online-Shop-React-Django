@@ -1,22 +1,43 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Product, Category # Order, OrderItem, Payment
-from .serializers import ProductSerializer, CategorySerializer # OrderSerializer
+from .models import (Product,
+                     Category,
+                     ProductVariant,
+                     ProductImage)
+from .serializers import (ProductSerializer,
+                          CategorySerializer,
+                          ProductVariantSerializer,
+                          ProductImageSerializer)
 from rest_framework import status
 from utils import generate_transactio_id
+import json
 
-class ProductsList(APIView):
+class ProductListView(APIView):
     """
         Method: Get \n
-            Get all list of products (for a category)
+            Get all list of products
         input: \n
             optional: category_slug
         return: \n
             list of products (for a category)
-
     """
     def get(self, request):
-        products = Product.objects.all()
+
+        category_id = request.query_params.get('category')
+        search_query = request.query_params.get('search')
+
+        if category_id:
+            try:
+                products = Product.objects.filter(category_id=category_id)
+            except Product.DoesNotExist:
+                return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            products = Product.objects.all()
+
+        # Searching by title
+        if search_query:
+            products = products.filter(title__icontains=search_query)
+
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -27,18 +48,7 @@ class ProductsList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # def get(self, request, category_slug=None):
-    #     products = Product.objects.filter(available=True)
-    #     categories = Category.objects.all()
-    #     if category_slug:
-    #         categories = Category.objects.get(slug=category_slug)
-    #         products = products.filter(category=categories)
-    #     categories = CategorySerializer(instance=categories, many=True)
-    #     products = ProductSerializer(instance=products, many=True)
-    #     return Response(data={'products': products.data,
-    #                           'category': categories.data,}, status=status.HTTP_200_OK)
-
-class ProductDetail(APIView):
+class ProductDetailView(APIView):
     """
         Method: Get \n
 
@@ -46,42 +56,84 @@ class ProductDetail(APIView):
 
         return: \n
     """
-    def get_object(self, id):
+    def get_object(self, pk):
         try:
-            return Product.objects.get(id=id)
+            return Product.objects.get(pk=pk)
         except Product.DoesNotExist:
-            return None
-
-    def get(self, request, id):
-        product = self.get_object(id)
-        if not product:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk, format=None):
+        product = self.get_object(pk)
         serializer = ProductSerializer(product)
         return Response(serializer.data)
 
-    def put(self, request, id):
-        product = self.get_object(id)
-        if not product:
-            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    def put(self, request, pk, format=None):
+        product = self.get_object(pk)
         serializer = ProductSerializer(product, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, id):
-        product = self.get_object(id)
-        if not product:
-            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    def delete(self, request, pk, format=None):
+        product = self.get_object(pk)
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class CategoryList(APIView):
+class ProductVariantListView(APIView):
+    def get(self, request):
+        product_id = request.query_params.get('product')
+
+        if product_id:
+            variants = ProductVariant.objects.filter(product_id=product_id)
+        else:
+            variants = ProductVariant.objects.all()
+
+        serializer = ProductVariantSerializer(variants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ProductVariantSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ProductVariantDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return ProductVariant.objects.get(pk=pk)
+        except ProductVariant.DoesNotExist:
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk):
+        variant = self.get_object(pk)
+        serializer = ProductVariantSerializer(variant)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        variant = self.get_object(pk)
+        serializer = ProductVariantSerializer(variant, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        variant = self.get_object(pk)
+        variant.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CategoryListView(APIView):
+    def get_data(self, request):
+        return request.data if type(request.data)!=str else json.loads(request.data)
     def get(self, request):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = CategorySerializer(data=request.data)
@@ -90,37 +142,75 @@ class CategoryList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CategoryDetail(APIView):
-    def get_object(self, id):
+class CategoryDetailView(APIView):
+    def get_object(self, pk):
         try:
-            return Category.objects.get(id=id)
+            return Category.objects.get(pk=pk)
         except Category.DoesNotExist:
-            return None
-
-    def get(self, request, id):
-        category = self.get_object(id)
-        if not category:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk):
+        category = self.get_object(pk)
         serializer = CategorySerializer(category)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, id):
-        category = self.get_object(id)
-        if not category:
-            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    def put(self, request, pk):
+        category = self.get_object(pk)
         serializer = CategorySerializer(category, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, id):
-        category = self.get_object(id)
-        if not category:
-            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    def delete(self, request, pk):
+        category = self.get_object(pk)
         category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+class ProductImageListView(APIView):
+    def get(self, request):
+        product_id = request.query_params.get('product')
+
+        if product_id:
+            images = ProductImage.objects.filter(product_id=product_id)
+        else:
+            images = ProductImage.objects.all()
+
+        serializer = ProductImageSerializer(images, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ProductImageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ProductImageDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return ProductImage.objects.get(pk=pk)
+        except ProductImage.DoesNotExist:
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk):
+        image = self.get_object(pk)
+        serializer = ProductImageSerializer(image)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        image = self.get_object(pk)
+        serializer = ProductImageSerializer(image, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        image = self.get_object(pk)
+        image.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 """
 # class OrderAddView(APIView):
