@@ -1,11 +1,11 @@
 FROM python:3.11-slim
 
-COPY ./requirements.txt /app/requirements.txt
+COPY ./drf/requirements.txt /app/requirements.txt
 
 RUN pip install --upgrade pip
 
 RUN pip install -r /app/requirements.txt
 
-COPY ./ /app
+COPY ./drf /app
 
 RUN cd /app
