@@ -8,12 +8,9 @@ on:
 
 jobs:
   build:
+    environment: SSH_PRIVATE_KEY
 
     runs-on: self-hosted
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.9]
 
     steps:
     - name: Checkout code
@@ -52,6 +49,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     needs: build
+    environment: SSH_PRIVATE_KEY
 
     steps:
     - name: Deploy to VPS
