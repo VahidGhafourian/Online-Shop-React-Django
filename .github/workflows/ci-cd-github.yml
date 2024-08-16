@@ -85,5 +85,5 @@ jobs:
           REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           cd program
           cd $(basename "${{ github.repository }}")
-          ls -la
+          ls -la 
           docker-compose -f drf/docker-compose.yml up -d
