@@ -84,6 +84,7 @@ jobs:
         script: |
           REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           cd program
+          git clone https://github.com/${{ github.repository }}.git
           cd $(basename "${{ github.repository }}")
           ls -la 
           docker-compose -f drf/docker-compose.yml up -d
