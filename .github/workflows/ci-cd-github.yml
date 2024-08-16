@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    environment: SSH_PRIVATE_KEY
     runs-on: self-hosted
 
     steps:
@@ -66,7 +67,7 @@ jobs:
 
     steps:
     - name: Deploy to VPS
-      uses: appleboy/ssh-action@v0.1.8
+      uses: appleboy/ssh-action@v0.1.6
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
