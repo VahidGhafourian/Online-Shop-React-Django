@@ -10,9 +10,13 @@ services:
     container_name: online-shop-container
     environment:
       - DB_DIR=/data
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
     ports:
       - 8000:9000
-      - 5432:5432
     image: ${IMAGE_NAME}
     build:
       context: .
@@ -21,7 +25,21 @@ services:
     volumes:
       - shop:/data
 
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
 volumes:
   shop:
     name: shop
     external: true
+  pgdata:
+    name: pgdata

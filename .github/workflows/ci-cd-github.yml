@@ -83,4 +83,4 @@ jobs:
             REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
             cd program/$(basename "${{ github.repository }}")
             git pull
-            IMAGE_NAME=ghcr.io/vahidghafourian/online-shop-react-django:latest docker-compose -f drf/docker-compose.yml up -d
+            docker-compose -f drf/docker-compose.yml up -d
