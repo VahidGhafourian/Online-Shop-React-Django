@@ -62,6 +62,7 @@ jobs:
         python manage.py test
 
   deploy:
+    environment: SSH_PRIVATE_KEY
     runs-on: self-hosted
     needs: test
 
