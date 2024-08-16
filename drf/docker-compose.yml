@@ -12,11 +12,12 @@ services:
       - DB_DIR=/data
     ports:
       - 8000:9000
+      - 5432:5432
     image: ${IMAGE_NAME}
     build:
       context: .
       dockerfile: ../Dockerfile
-    command: bash -c " python /app/manage.py migrate && python /app/manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python /app/manage.py migrate && python /app/manage.py runserver 0.0.0.0:8000"
     volumes:
       - shop:/data
 
