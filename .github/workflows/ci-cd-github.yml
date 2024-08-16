@@ -64,7 +64,7 @@ jobs:
   deploy:
     environment: SSH_PRIVATE_KEY
     runs-on: self-hosted
-    needs: build
+    needs: test
 
     steps:
     - name: Log in to GHCR
@@ -86,5 +86,4 @@ jobs:
           cd program
           git clone https://github.com/${{ github.repository }}.git
           cd $(basename "${{ github.repository }}")
-          ls -la
-          IMAGE=ghcr.io/${{ github.repository }}:latest docker-compose -f drf/docker-compose.yml up -d
+          docker-compose -f drf/docker-compose.yml up -d

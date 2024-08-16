@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  chatbot:
+  shop:
     deploy:
       resources:
         limits:
@@ -12,15 +12,15 @@ services:
       - DB_DIR=/data
     ports:
       - 8000:9000
-    image: IMAGE
+    image: ${IMAGE_NAME}
     build:
       context: .
       dockerfile: ../Dockerfile
     command: bash -c " python /app/manage.py migrate && python /app/manage.py runserver 0.0.0.0:8000"
     volumes:
-      - online_shop:/data
+      - shop:/data
 
 volumes:
-  chatbot:
-    name: online_shop
+  shop:
+    name: shop
     external: true
