@@ -13,7 +13,7 @@ services:
       - SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
     ports:
       - 8000:9000
-    image: ${{ github.repository }}:latest
+    image: ghcr.io/${{ github.repository }}:latest
     build:
       context: .
       dockerfile: Dockerfile
