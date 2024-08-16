@@ -37,6 +37,16 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  nginx:
+    image: nginx:latest
+    container_name: nginx-container
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - shop
+      
 volumes:
   shop:
     name: shop
