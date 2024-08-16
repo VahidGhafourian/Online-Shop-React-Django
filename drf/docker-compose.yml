@@ -15,7 +15,7 @@ services:
     image: ghcr.io/${{ github.repository }}:latest
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ../Dockerfile
     command: bash -c " python /app/manage.py migrate && python /app/manage.py runserver 0.0.0.0:8000"
     volumes:
       - online_shop:/data

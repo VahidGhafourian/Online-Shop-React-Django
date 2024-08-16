@@ -83,6 +83,7 @@ jobs:
         port: 22
         script: |
           REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          docker pull ghcr.io/$REPO_NAME:latest
+          cd program
+          cd $(basename "${{ github.repository }}")
           ls -la
           docker-compose -f drf/docker-compose.yml up -d
