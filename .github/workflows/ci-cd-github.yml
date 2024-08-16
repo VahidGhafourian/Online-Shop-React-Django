@@ -77,4 +77,4 @@ jobs:
         script: |
           REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           docker pull ghcr.io/$REPO_NAME:latest
-          docker-compose -f docker-compose.yml up -d
+          ls
