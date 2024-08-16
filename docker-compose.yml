@@ -10,6 +10,7 @@ services:
     container_name: online-shop-container
     environment:
       - DB_DIR=/data
+      - SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
     ports:
       - 8000:9000
     image: ${{ github.repository }}:latest
