@@ -65,7 +65,6 @@ jobs:
   deploy:
     runs-on: self-hosted
     needs: test
-    environment: SSH_PRIVATE_KEY
 
     steps:
     - name: Deploy to VPS
@@ -75,5 +74,6 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          docker pull ghcr.io/${{ github.repository }}:latest
+          REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          sudo docker pull ghcr.io/$REPO_NAME:latest
           docker-compose -f docker-compose.yml up -d
