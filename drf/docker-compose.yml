@@ -12,7 +12,7 @@ services:
       - DB_DIR=/data
     ports:
       - 8000:9000
-    image: ghcr.io/${{ github.repository }}:latest
+    image: IMAGE
     build:
       context: .
       dockerfile: ../Dockerfile
