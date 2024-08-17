@@ -1,5 +1,7 @@
 FROM postgres:13
 
+RUN apt-get update && apt-get install -y gettext
+
 # Copy initialization files
 COPY docker-entrypoint-db.sh /docker-entrypoint.sh
 COPY init_db_template.sql /docker-entrypoint-initdb.d/init_db_template.sql
