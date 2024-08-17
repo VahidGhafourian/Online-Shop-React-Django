@@ -30,3 +30,4 @@ db.sqlite3
 .gitignore
 product-category-tree.csv
 product_images
+static
