@@ -98,5 +98,5 @@ jobs:
             REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
             cd program/$(basename "${{ github.repository }}")
             docker-compose down
-            git pull
+            git fetch origin && git reset --hard origin/main
             docker-compose -f ./docker-compose.yml up --build

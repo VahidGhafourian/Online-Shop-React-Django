@@ -3,6 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 COPY ./drf/requirements.txt /app/requirements.txt
+COPY ./.env /app/.env
 
 RUN pip install --upgrade pip
 
