@@ -9,6 +9,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         env_path = './.env'
+        import subprocess
+
+        # Example bash command
+        bash_command = "ls"
+
+        # Execute the bash command
+        process = subprocess.run(bash_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        # Get the output and error (if any)
+        output = process.stdout.decode('utf-8')
+        error = process.stderr.decode('utf-8')
+
+        # Print the output and error
+        print("Output:", output)
+        print("Error:", error)
+
         load_dotenv(dotenv_path=env_path)
         User = get_user_model()
         if not User.objects.filter(phone_number=os.getenv('DJANGO_SUPERUSER_PHONENUMBER')).exists():
