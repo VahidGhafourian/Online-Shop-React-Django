@@ -73,7 +73,7 @@ class GenerateSendOTP(APIView):
             # Send the OTP to the user (you can use an SMS gateway or any other method)
             # TODO
             # send_otp_code(phone_number, otp_code)
-            return Response({'success': True, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
+            return Response({'success': True, 'otp_code': otp_code, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
         else:
             # print(ser_OtpCode.errors)
             return Response({'success': False, 'message': ser_OtpCode.errors}, status=status.HTTP_400_BAD_REQUEST)
