@@ -7,7 +7,7 @@ COPY docker-entrypoint-db.sh /docker-entrypoint.sh
 COPY init_db_template.sql /docker-entrypoint-initdb.d/init_db_template.sql
 
 # Make the entrypoint script executable
-RUN chmod +x /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint-db.sh
 
 # Set the custom entrypoint
 ENTRYPOINT ["/docker-entrypoint.sh"]
