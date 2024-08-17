@@ -174,9 +174,13 @@ SIMPLE_JWT = {
 }
 
 
+CSRF_COOKIE_DOMAIN = 'pirnking.info'
+CSRF_TRUSTED_ORIGINS= ['http://pirnking.info']
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Replace with the actual address of your React app
     "http://localhost:3000",  # Replace with the actual address of your React app
+    "http://pirnking.info"
 ]
 
 CORS_ALLOW_METHODS = [
