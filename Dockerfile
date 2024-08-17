@@ -12,7 +12,5 @@ COPY ./drf /app
 
 RUN python manage.py collectstatic --noinput
 
-RUN python manage.py createsu
-
 RUN cd /app
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "OnlineShop.wsgi:application"]
