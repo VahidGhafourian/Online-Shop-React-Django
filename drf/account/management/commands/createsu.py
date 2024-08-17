@@ -8,6 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         User = get_user_model()
         if not User.objects.filter(phone_number=os.getenv('DJANGO_SUPERUSER_PHONENUMBER')).exists():
+            print(os.getenv('DJANGO_SUPERUSER_PHONENUMBER'))
             User.objects.create_superuser(
                 phone_number=os.getenv('DJANGO_SUPERUSER_PHONENUMBER'),
                 email=os.getenv('DJANGO_SUPERUSER_EMAIL'),
