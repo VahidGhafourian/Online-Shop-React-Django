@@ -12,5 +12,5 @@ COPY ./drf /app
 
 RUN python manage.py collectstatic --noinput
 
-# RUN cd /app
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "myproject.wsgi:application"]
+RUN cd /app
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "OnlineShop.wsgi:application"]
