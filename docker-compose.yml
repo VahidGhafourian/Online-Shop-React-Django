@@ -55,6 +55,8 @@ services:
       - shop
 
 volumes:
+  static_volume:
+  media_volume:
   shop:
     name: shop
     external: true
