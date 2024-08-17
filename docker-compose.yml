@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   shop:
-    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -29,7 +28,6 @@ services:
       - db
 
   db:
-    restart: unless-stopped
     image: postgres:13
     container_name: postgres-db
     environment:
@@ -43,7 +41,6 @@ services:
       - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
 
   nginx:
-    restart: unless-stopped
     image: nginx:latest
     container_name: nginx-container
     ports:
