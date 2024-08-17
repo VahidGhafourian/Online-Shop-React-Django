@@ -28,10 +28,7 @@ services:
       - db
 
   db:
-    build:
-      context: .
-      dockerfile: ./db_Dockerfile
-    image: my-custom-postgres
+    image: postgres:latest
     container_name: postgres-db
     environment:
       POSTGRES_DB: ${DB_NAME}
