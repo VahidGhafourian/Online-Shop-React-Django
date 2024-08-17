@@ -28,7 +28,7 @@ services:
       - db
 
   db:
-    image: postgres:latest
+    image: postgres:12
     container_name: postgres-db
     environment:
       POSTGRES_DB: ${DB_NAME}
