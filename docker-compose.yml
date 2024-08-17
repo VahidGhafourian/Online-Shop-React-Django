@@ -30,7 +30,7 @@ services:
   db:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./db_Dockerfile
     image: my-custom-postgres
     container_name: postgres-db
     environment:
