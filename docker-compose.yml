@@ -28,7 +28,10 @@ services:
       - db
 
   db:
-    image: postgres:13
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: my-custom-postgres
     container_name: postgres-db
     environment:
       POSTGRES_DB: ${DB_NAME}
@@ -38,7 +41,7 @@ services:
       - 5432:5432
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./init_db_template.sql:/docker-entrypoint-initdb.d/init_db_template.sql
 
   nginx:
     image: nginx:latest

@@ -1,0 +1,6 @@
+FROM postgres:13
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY init_db_template.sql /docker-entrypoint-initdb.d/init_db_template.sql
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
