@@ -36,7 +36,3 @@ services:
       retries: 10
     ports:
       - 5433:5432
-
-volumes:
-  pgdata:
-    name: pgdata
