@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'jsoneditor',
     'django_jsonform',
     'django_extensions',
+    'drf_spectacular',
 
     # Local apps
     'account',
@@ -169,7 +170,17 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer', # comment on production
         'rest_framework.renderers.AdminRenderer', # comment on production
-    ]
+    ],
+
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Online Shop API',
+    'DESCRIPTION': 'Description of Online Shop API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 from datetime import timedelta
