@@ -40,12 +40,12 @@ jobs:
         python-version: [3.11]
 
     services:
-      postgres:
+      db:
         image: postgres:latest
         env:
           POSTGRES_DB: online_shop
-          POSTGRES_USER: django
-          POSTGRES_PASSWORD: admin
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5433:5432
         options: >-
