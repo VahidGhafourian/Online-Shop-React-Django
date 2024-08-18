@@ -6,6 +6,7 @@ Email: Vahidghafourianam@gmail.com
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import sys
 
 
 def is_test_running():
