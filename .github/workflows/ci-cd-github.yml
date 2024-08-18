@@ -78,7 +78,7 @@ jobs:
 
       - name: Stop Postgres Service
         run: |
-          docker stop $(docker ps -q --filter ancestor=postgres:latest)
+          docker stop $(docker ps -q --filter ancestor=postgres:12)
 
   deploy:
     environment: SSH_PRIVATE_KEY
