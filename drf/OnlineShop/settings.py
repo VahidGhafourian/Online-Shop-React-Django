@@ -7,14 +7,18 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
+
+def is_test_running():
+    return 'test' in sys.argv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv_path = BASE_DIR.parent/'.env'
-
-if not os.path.exists(dotenv_path):
-    raise FileNotFoundError(f"Could not find .env file at path: {dotenv_path}")
-load_dotenv(dotenv_path)
+if not is_test_running():
+  dotenv_path = BASE_DIR.parent/'.env'
+  if not os.path.exists(dotenv_path):
+      raise FileNotFoundError(f"Could not find .env file at path: {dotenv_path}")
+  load_dotenv(dotenv_path)
 
 
 # Quick-start development settings - unsuitable for production
