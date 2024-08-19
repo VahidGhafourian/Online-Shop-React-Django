@@ -42,7 +42,7 @@ class UserCheckLoginPhone(APIView): # NEW
     """
     def post(self, request, *args, **kwargs):
         phone_number = request.data.get('phoneNumber')
-
+        # TODO: Check User have password or not.
         if User.objects.filter(phone_number=phone_number).exists():
             return Response({'newUser': False, 'message': 'User with this phone number already exists'}, status=status.HTTP_200_OK)
         else:
