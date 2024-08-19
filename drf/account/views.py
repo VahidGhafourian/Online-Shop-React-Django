@@ -34,19 +34,29 @@ import json
 class UserCheckLoginPhone(APIView): # NEW
     """
         Method: POST \n
-            use to check entered phone number existence in db.
+            use to check entered phone number existence in db and have password or not.
         Input: \n
-            - phone_number: 11 digits \n
+            - phoneNumber: 11 digits \n
         return: \n
             - newUser: True if this phone number doesn't found in db. False if phone number found in db.
+            - havePass: True if the user already have password. False if user doesn't set password.
     """
     def post(self, request, *args, **kwargs):
         phone_number = request.data.get('phoneNumber')
-        # TODO: Check User have password or not.
-        if User.objects.filter(phone_number=phone_number).exists():
-            return Response({'newUser': False, 'message': 'User with this phone number already exists'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'newUser': True, 'message': 'Phone number is New'}, status=status.HTTP_200_OK)
+        if not phone_number:
+            return Response({'error': 'Phone number is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(phone_number=phone_number)
+            if user.password:
+                have_pass = True
+            else:
+                have_pass = False
+            new_user = False
+        except User.DoesNotExist:
+            have_pass = False
+            new_user = True
+
+        return Response({'newUser': new_user, 'havePass': have_pass}, status=status.HTTP_200_OK)
 
 class GenerateSendOTP(APIView):
     """
@@ -104,12 +114,12 @@ class VerifyOTP(APIView):
                 user = User.objects.get(phone_number=phone_number)
             else:
                 user_serializer = UserRegisterSerializer(data={**data, 'phone_number': phone_number})
-
                 if user_serializer.is_valid():
                     user = user_serializer.save()
                 else:
                     # print(user_serializer.errors)
-                    return Response({'success': False, 'message': 'Cannot Create new user.'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'success': False, 'message': 'Cannot Create new user.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
                 # Generate tokens for the registered user
             refresh = RefreshToken.for_user(user)
@@ -126,15 +136,24 @@ class VerifyOTP(APIView):
 
         else:
             # print(f"Can't find the {entered_otp=} with {phone_number=}")
-            return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success': False, 'message': 'Invalid OTP'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
 
+    """
+    Method: Get
+        The Current Registred user information
+    Input:
+        -
+    Return:
+        - The Current Registred user information
+    """
     def get(self, request):
         user = request.user
         serializer = UserRegisterSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     """
     Method: POST
         Use to set or update the password for the authenticated user.
@@ -169,12 +188,27 @@ class UserInfoView(APIView):
 class AddressView(APIView):
     permission_classes = [IsAuthenticated]
 
+    """
+    Method: GET
+
+    Input:
+        -
+    Return:
+        - Retrieve all addresses of the authenticated user
+    """
     def get(self, request, *args, **kwargs):
-        # Retrieve all addresses of the authenticated user
         addresses = Address.objects.filter(user=request.user)
         serializer = AddressSerializer(addresses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    """
+    Method: POST
+        Add new address for user
+    Input:
+        - Address information: 'is_default', 'country', 'state', 'city', 'street', 'postal_code'
+    Return:
+        - Created Address information. Or Bad Request for invalid data
+    """
     def post(self, request, *args, **kwargs):
         data = request.data.dict()
         data['user'] = request.user.id

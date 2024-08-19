@@ -16,13 +16,11 @@ class UserCheckLoginPhoneTests(APITestCase):
         response = self.client.post(self.url, {'phoneNumber': self.existing_user.phone_number})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['newUser'], False)
-        self.assertEqual(response.data['message'], 'User with this phone number already exists')
 
     def test_check_new_phone_number(self):
         response = self.client.post(self.url, {'phoneNumber': '09111111111'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['newUser'], True)
-        self.assertEqual(response.data['message'], 'Phone number is New')
 
 
 class GenerateSendOTPTests(APITestCase):

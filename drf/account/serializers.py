@@ -66,4 +66,4 @@ class OtpCodeSerializer(serializers.ModelSerializer):
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ['id', 'is_default', 'country', 'state', 'city', 'street', 'postal_code', 'created_at', 'updated_at', 'user']
+        fields = ['id', 'is_default', 'country', 'state', 'city', 'street', 'postal_code', 'user']
