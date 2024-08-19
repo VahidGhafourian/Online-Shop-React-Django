@@ -14,11 +14,11 @@ class OrderListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        print(request.user)
-        serializer = OrderSerializer(data=request.data)
+        serializer = OrderSerializer(data={**request.data , 'user': request.user.id})
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class OrderDetailView(APIView):

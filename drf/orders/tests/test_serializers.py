@@ -35,12 +35,10 @@ class OrderItemSerializerTests(TestCase):
         order_item = OrderItem.objects.create(order=self.order, product_variant=product_variant, price=100, quantity=2)
         serializer = OrderItemSerializer(order_item)
 
-        product_variant_serialized = ProductVariantSerializer(product_variant).data
-
         expected_data = {
             'id': order_item.id,
             'order': self.order.id,
-            'product_variant': product_variant_serialized,
+            'product_variant': product_variant.id,
             'price': 100,
             'quantity': 2,
         }

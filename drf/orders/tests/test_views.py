@@ -28,7 +28,7 @@ class OrderViewTests(APITestCase):
             'completed_at': False,
         }
         # print(self.client)
-        response = self.client.post(self.url_list, order_data)
+        response = self.client.post(self.url_list, order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Order.objects.count(), 2)
         self.assertEqual(response.data['completed_at'], order_data['completed_at'])
