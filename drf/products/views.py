@@ -11,6 +11,7 @@ from .serializers import (ProductSerializer,
 from rest_framework import status
 from utils import generate_transactio_id
 import json
+from rest_framework.permissions import IsAdminUser, AllowAny
 
 class ProductListView(APIView):
     """
@@ -21,6 +22,11 @@ class ProductListView(APIView):
         return: \n
             list of products (for a category)
     """
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get(self, request):
 
         category_id = request.query_params.get('category')
@@ -56,6 +62,11 @@ class ProductDetailView(APIView):
 
         return: \n
     """
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get_object(self, pk):
         try:
             return Product.objects.get(pk=pk)
@@ -82,6 +93,11 @@ class ProductDetailView(APIView):
 
 
 class ProductVariantListView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get(self, request):
         product_id = request.query_params.get('product')
 
@@ -101,6 +117,11 @@ class ProductVariantListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ProductVariantDetailView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get_object(self, pk):
         try:
             return ProductVariant.objects.get(pk=pk)
@@ -128,8 +149,14 @@ class ProductVariantDetailView(APIView):
 
 
 class CategoryListView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get_data(self, request):
         return request.data if type(request.data)!=str else json.loads(request.data)
+
     def get(self, request):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
@@ -143,6 +170,11 @@ class CategoryListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoryDetailView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get_object(self, pk):
         try:
             return Category.objects.get(pk=pk)
@@ -169,6 +201,11 @@ class CategoryDetailView(APIView):
 
 
 class ProductImageListView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get(self, request):
         product_id = request.query_params.get('product')
 
@@ -188,6 +225,11 @@ class ProductImageListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ProductImageDetailView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get_object(self, pk):
         try:
             return ProductImage.objects.get(pk=pk)

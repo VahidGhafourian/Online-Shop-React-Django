@@ -8,12 +8,19 @@ from products.factories import (
     ProductVariantFactory,
     ProductImageFactory,
 )
+from account.factories import UserFactory
 
 class CategoryViewTests(APITestCase):
     def setUp(self):
         self.category = CategoryFactory()
         self.url_list = reverse('products:category-list')
         self.url_detail = reverse('products:category-detail', args=[self.category.id])
+
+        self.staff_user = UserFactory(
+            phone_number='staffuser',
+            password='password123',
+            is_staff=True,
+        )
 
     def test_list_categories(self):
         response = self.client.get(self.url_list)
@@ -25,6 +32,7 @@ class CategoryViewTests(APITestCase):
         self.assertEqual(response.data['id'], self.category.id)
 
     def test_create_category(self):
+        self.client.force_authenticate(user=self.staff_user)
         category_data = {
             'title': 'New Category',
             'slug': 'new-category',
@@ -37,6 +45,7 @@ class CategoryViewTests(APITestCase):
         self.assertEqual(response.data['title'], category_data['title'])
 
     def test_update_category(self):
+        self.client.force_authenticate(user=self.staff_user)
         updated_data = {'title': 'Updated Title'}
         response = self.client.put(self.url_detail, updated_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -44,6 +53,7 @@ class CategoryViewTests(APITestCase):
         self.assertEqual(self.category.title, updated_data['title'])
 
     def test_delete_category(self):
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.delete(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Category.objects.filter(id=self.category.id).exists())
@@ -54,6 +64,11 @@ class ProductViewTests(APITestCase):
         self.product = ProductFactory()
         self.url_list = reverse('products:product-list')
         self.url_detail = reverse('products:product-detail', args=[self.product.id])
+        self.staff_user = UserFactory(
+            phone_number='staffuser',
+            password='password123',
+            is_staff=True,
+        )
 
     def test_list_products(self):
         response = self.client.get(self.url_list)
@@ -65,6 +80,7 @@ class ProductViewTests(APITestCase):
         self.assertEqual(response.data['id'], self.product.id)
 
     def test_create_product(self):
+        self.client.force_authenticate(user=self.staff_user)
         category = CategoryFactory()
         product_data = {
             'title': 'New Product',
@@ -80,6 +96,7 @@ class ProductViewTests(APITestCase):
         self.assertEqual(response.data['title'], product_data['title'])
 
     def test_update_product(self):
+        self.client.force_authenticate(user=self.staff_user)
         updated_data = {'title': 'Updated Product Title'}
         response = self.client.put(self.url_detail, updated_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -87,6 +104,7 @@ class ProductViewTests(APITestCase):
         self.assertEqual(self.product.title, updated_data['title'])
 
     def test_delete_product(self):
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.delete(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Product.objects.filter(id=self.product.id).exists())
@@ -97,6 +115,11 @@ class ProductVariantViewTests(APITestCase):
         self.variant = ProductVariantFactory()
         self.url_list = reverse('products:product-variant-list')
         self.url_detail = reverse('products:product-variant-detail', args=[self.variant.id])
+        self.staff_user = UserFactory(
+            phone_number='staffuser',
+            password='password123',
+            is_staff=True,
+        )
 
     def test_list_product_variants(self):
         response = self.client.get(self.url_list)
@@ -108,6 +131,7 @@ class ProductVariantViewTests(APITestCase):
         self.assertEqual(response.data['id'], self.variant.id)
 
     def test_create_product_variant(self):
+        self.client.force_authenticate(user=self.staff_user)
         product = ProductFactory()
         variant_data = {
             'product': product.id,
@@ -121,6 +145,7 @@ class ProductVariantViewTests(APITestCase):
         self.assertEqual(response.data['price'], variant_data['price'])
 
     def test_update_product_variant(self):
+        self.client.force_authenticate(user=self.staff_user)
         updated_data = {'price': 15000}
         response = self.client.put(self.url_detail, updated_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -128,6 +153,7 @@ class ProductVariantViewTests(APITestCase):
         self.assertEqual(self.variant.price, updated_data['price'])
 
     def test_delete_product_variant(self):
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.delete(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(ProductVariant.objects.filter(id=self.variant.id).exists())
@@ -138,6 +164,11 @@ class ProductImageViewTests(APITestCase):
         self.image = ProductImageFactory()
         self.url_list = reverse('products:product-image-list')
         self.url_detail = reverse('products:product-image-detail', args=[self.image.id])
+        self.staff_user = UserFactory(
+            phone_number='staffuser',
+            password='password123',
+            is_staff=True,
+        )
 
     def test_list_product_images(self):
         response = self.client.get(self.url_list)
@@ -149,6 +180,7 @@ class ProductImageViewTests(APITestCase):
         self.assertEqual(response.data['id'], self.image.id)
 
     def test_create_product_image(self):
+        self.client.force_authenticate(user=self.staff_user)
         product = ProductFactory()
         image_data = {
             'product': product.id,
@@ -161,6 +193,7 @@ class ProductImageViewTests(APITestCase):
         self.assertEqual(response.data['alt_text'], image_data['alt_text'])
 
     def test_update_product_image(self):
+        self.client.force_authenticate(user=self.staff_user)
         updated_data = {'alt_text': 'Updated Alt Text'}
         response = self.client.put(self.url_detail, updated_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -168,6 +201,7 @@ class ProductImageViewTests(APITestCase):
         self.assertEqual(self.image.alt_text, updated_data['alt_text'])
 
     def test_delete_product_image(self):
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.delete(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(ProductImage.objects.filter(id=self.image.id).exists())
