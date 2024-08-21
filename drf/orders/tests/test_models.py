@@ -8,9 +8,9 @@ class OrderModelTests(TestCase):
         self.user = UserFactory()
 
     def test_create_order(self):
-        order = Order.objects.create(user=self.user, completed_at=False)
+        order = Order.objects.create(user=self.user, completed=False)
         self.assertEqual(str(order), f'Order {order.id} by user {self.user}')
-        self.assertFalse(order.completed_at)
+        self.assertFalse(order.completed)
 
     def test_get_total_price(self):
         order = Order.objects.create(user=self.user)

@@ -4,7 +4,7 @@ from products.models import ProductVariant
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    completed_at = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -14,7 +14,7 @@ class Order(models.Model):
     def __str__(self):
         return f'Order {self.id} by user {str(self.user)}'
 
-    
+
     def get_total_price(self):
         total = sum(item.get_cost() for item in self.items.all())
         # if self.discount:

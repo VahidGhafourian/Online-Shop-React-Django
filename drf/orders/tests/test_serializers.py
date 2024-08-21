@@ -10,19 +10,18 @@ class OrderSerializerTests(TestCase):
         self.user = UserFactory()
 
     def test_order_serialization(self):
-        order = Order.objects.create(user=self.user, completed_at=False)
+        order = Order.objects.create(user=self.user)
         serializer = OrderSerializer(order)
         expected_data = {
-            'id': order.id,
             'user': self.user.id,
-            'completed_at': False,
+            'completed': False,
             'total_price': 0,
             'items': [],
         }
         self.assertEqual(serializer.data, expected_data)
 
     def test_order_validation(self):
-        serializer = OrderSerializer(data={'completed_at': False})
+        serializer = OrderSerializer(data={'completed': False})
         self.assertFalse(serializer.is_valid())
         self.assertIn('user', serializer.errors)
 

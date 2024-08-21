@@ -10,7 +10,7 @@ class OrderFactory(DjangoModelFactory):
         model = Order
 
     user = factory.SubFactory(UserFactory)
-    completed_at = factory.Faker('boolean')
+    completed = factory.Faker('boolean')
     created_at = factory.Faker('date_time_this_year')
     updated_at = factory.Faker('date_time_this_year')
 
