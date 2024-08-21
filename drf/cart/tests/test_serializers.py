@@ -11,7 +11,6 @@ class CartSerializerTest(TestCase):
 
     def test_cart_serializer(self):
         serializer = CartSerializer(self.cart)
-        self.assertEqual(serializer.data['id'], self.cart.id)
         self.assertEqual(len(serializer.data['items']), 1)
 
     def test_cart_item_serializer(self):

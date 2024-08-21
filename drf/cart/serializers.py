@@ -6,6 +6,10 @@ class CartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = ['id', 'cart', 'product_variant', 'items_count']
 
+        extra_kwargs = {
+            'cart': {'write_only': True},
+        }
+
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -13,7 +17,7 @@ class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ['id', 'user', 'items']
+        fields = ['user', 'items']
 
     # def create(self, validated_data):
     #     items_data = validated_data.pop('items')

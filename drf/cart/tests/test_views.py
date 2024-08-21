@@ -19,7 +19,6 @@ class CartViewTest(APITestCase):
         url = reverse('cart:cart-add-get')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['id'], self.cart.id)
 
     def test_add_item_to_cart(self):
         url = reverse('cart:cart-add-get')

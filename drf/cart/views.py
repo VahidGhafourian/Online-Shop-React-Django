@@ -14,15 +14,29 @@ class CartView(APIView):
         # print(created)
         return cart
 
+    """
+    Method: GET
+        Retrieve the cart details.
+    Input:
+        - Authenticated request
+    Return:
+        - ['user', 'items']
+    """
     def get(self, request):
-        """Retrieve the cart details."""
         cart = self.get_cart(request)
         cart = self.apply_discounts(cart)
         serializer = CartSerializer(cart)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    """
+    Method: POST
+        Add an item to the cart.
+    Input:
+        - ['product_variant', 'items_count']
+    Return:
+        - ['product_variant', 'items_count']
+    """
     def post(self, request):
-        """Add an item to the cart."""
         cart = self.get_cart(request)
         data = request.data.dict()
         # print(cart.items)
@@ -41,8 +55,15 @@ class CartView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
+    Method: DELETE
+        Remove an item from the cart.
+    Input:
+        - item_id
+    Return:
+        - status 200 if its done. otherwise 404.
+    """
     def delete(self, request, item_id):
-        """Remove an item from the cart."""
         try:
             cart_item = CartItem.objects.get(cart__user=request.user, id=item_id)
             cart_item.delete()
@@ -50,8 +71,15 @@ class CartView(APIView):
         except CartItem.DoesNotExist:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    """
+    Method: PUT
+        Update an item in the cart.
+    Input:
+        - item_id, ['product_variant', 'items_count']
+    Return:
+        - status 200 if its done. otherwise 404.
+    """
     def put(self, request, item_id):
-        """Update an item in the cart."""
         try:
             cart_item = CartItem.objects.get(cart__user=request.user, id=item_id)
             serializer = CartItemSerializer(cart_item, data=request.data, partial=True)
