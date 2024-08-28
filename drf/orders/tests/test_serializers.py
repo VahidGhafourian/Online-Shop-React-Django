@@ -13,17 +13,12 @@ class OrderSerializerTests(TestCase):
         order = Order.objects.create(user=self.user)
         serializer = OrderSerializer(order)
         expected_data = {
-            'user': self.user.id,
+            'user': self.user.phone_number,
             'completed': False,
             'total_price': 0,
             'items': [],
         }
         self.assertEqual(serializer.data, expected_data)
-
-    def test_order_validation(self):
-        serializer = OrderSerializer(data={'completed': False})
-        self.assertFalse(serializer.is_valid())
-        self.assertIn('user', serializer.errors)
 
 class OrderItemSerializerTests(TestCase):
     def setUp(self):
@@ -37,7 +32,7 @@ class OrderItemSerializerTests(TestCase):
         expected_data = {
             'id': order_item.id,
             'order': self.order.id,
-            'product_variant': product_variant.id,
+            'product_variant': product_variant.product.title,
             'price': 100,
             'quantity': 2,
         }

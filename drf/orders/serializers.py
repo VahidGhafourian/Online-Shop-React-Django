@@ -3,6 +3,7 @@ from .models import Order, OrderItem
 from products.serializers import ProductVariantSerializer
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product_variant = serializers.ReadOnlyField(source='product_variant.product.title')
     class Meta:
         model = OrderItem
         fields = ['id', 'order', 'product_variant', 'quantity', 'price']
@@ -15,6 +16,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     total_price = serializers.SerializerMethodField()
+    user = serializers.ReadOnlyField(source='user.phone_number')
 
     class Meta:
         model = Order
