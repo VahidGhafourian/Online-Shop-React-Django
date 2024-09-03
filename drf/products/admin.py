@@ -2,7 +2,7 @@ from typing import Any
 from django.contrib import admin
 from django.db.models.fields.json import JSONField
 from jsoneditor.forms import JSONEditor
-from .models import Category, Product, ProductVariant #Order, OrderItem, Coupon, Payment
+from .models import Category, Product, ProductVariant, ProductImage
 from .adminforms import ProductAdminForm, ProductVariantAdminForm
 
 
@@ -32,6 +32,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(ProductVariant, ProductVariantAdmin)
+admin.site.register(ProductImage)
 
 
 # class OrderItemInline(admin.TabularInline):

@@ -50,7 +50,8 @@ class ProductSerializerTests(TestCase):
             'description': 'A modern smartphone.',
             'available': True,
             'attributes': {},
-            # 'variants': [],
+            'variants': [],
+            'images': [],
         }
         self.assertEqual(serializer.data, expected_data)
 

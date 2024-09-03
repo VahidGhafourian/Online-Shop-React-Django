@@ -26,8 +26,8 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         ]
 
 class ProductSerializer(serializers.ModelSerializer):
-    # variants = ProductVariantSerializer(many=True, read_only=True)
-    images = ProductImageSerializer(source='productimage_set', many=True, read_only=True)
+    variants = ProductVariantSerializer(many=True, read_only=True)
+    images = ProductImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
@@ -35,8 +35,10 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'category',
             'title', 'slug',
             'description', 'available',
-            'attributes','images'
+            'attributes','images', 'variants',
         ]
+
+    # TODO: Add serializer for product list and product detail
 
 
 # class OrderItemSerializer(serializers.ModelSerializer):
