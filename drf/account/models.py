@@ -32,18 +32,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
 
 class OtpCode(models.Model):
-    phone_number = models.CharField(max_length=13, null=True, unique=True)
-    # email = models.EmailField(max_length=255, null=True, unique=True)
-    # TODO: change code field to charField;
+    phone_number = models.CharField(max_length=13, unique=True)
     code = models.CharField(max_length=7)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
-            # models.UniqueConstraint(
-            #     fields=['email'], condition=models.Q(email__isnull=False),
-            #     name='unique_non_null_email_otp'
-            # ),
             models.UniqueConstraint(
                 fields=['phone_number'], condition=models.Q(phone_number__isnull=False),
                 name='unique_non_null_phone_number_otp'

@@ -70,6 +70,7 @@ class GenerateSendOTP(APIView):
     """
     def post(self, request, *args, **kwargs):
         phone_number = request.data.get('phoneNumber')
+        print(phone_number)
         # Generate a random 6-digit OTP
         otp_code = ''.join([str(random.randint(0, 9)) for _ in range(5)])
 

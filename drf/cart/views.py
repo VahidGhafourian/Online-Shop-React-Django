@@ -38,7 +38,7 @@ class CartView(APIView):
     """
     def post(self, request):
         cart = self.get_cart(request)
-        data = request.data.dict()
+        data = request.data
         # print(cart.items)
         data['cart'] = cart.id
 
@@ -75,7 +75,7 @@ class CartView(APIView):
     Method: PUT
         Update an item in the cart.
     Input:
-        - item_id, ['product_variant', 'items_count']
+        - item_id, ['items_count']
     Return:
         - status 200 if its done. otherwise 404.
     """

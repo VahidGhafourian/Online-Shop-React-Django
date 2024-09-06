@@ -26,7 +26,7 @@ class CartViewTest(APITestCase):
             'product_variant': self.product_variant.id,
             'items_count': 2
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['items_count'], self.cart_item.items_count+2)
 
@@ -35,7 +35,7 @@ class CartViewTest(APITestCase):
         data = {
             'items_count': 5
         }
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.cart_item.refresh_from_db()
         self.assertEqual(self.cart_item.items_count, 5)
