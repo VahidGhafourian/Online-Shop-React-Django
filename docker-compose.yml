@@ -24,29 +24,29 @@ services:
     volumes:
       - static_volume:/app/static/
       - shop:/data
-    depends_on:
-      - db
-    links:
-      - db
+    # depends_on:
+    #   - db
+    # links:
+    #   - db
     restart: on-failure
 
-  db:
-    image: postgres:12
-    container_name: postgres-db
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      PGUSER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 1s
-      timeout: 5s
-      retries: 10
-    ports:
-      - 5432:5432
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+  # db:
+  #   image: postgres:12
+  #   container_name: postgres-db
+  #   environment:
+  #     POSTGRES_DB: ${DB_NAME}
+  #     POSTGRES_USER: ${DB_USER}
+  #     PGUSER: ${DB_USER}
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready"]
+  #     interval: 1s
+  #     timeout: 5s
+  #     retries: 10
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - shop:/var/lib/postgresql/data
 
   nginx:
     image: nginx:latest
@@ -68,5 +68,5 @@ volumes:
   shop:
     name: shop
     external: true
-  pgdata:
-    name: pgdata
+  # pgdata:
+  #   name: pgdata

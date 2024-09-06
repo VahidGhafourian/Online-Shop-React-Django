@@ -31,3 +31,4 @@ db.sqlite3
 product-category-tree.csv
 product_images
 static
+self_doc.md
