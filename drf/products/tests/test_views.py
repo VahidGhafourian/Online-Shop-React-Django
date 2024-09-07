@@ -14,6 +14,7 @@ class CategoryViewTests(APITestCase):
     def setUp(self):
         self.category = CategoryFactory()
         self.url_list = reverse('products:category-list')
+        self.url_detail = reverse('products:category-detail', args=[self.category.id])
 
         self.staff_user = UserFactory(
             phone_number='staffuser',
@@ -25,6 +26,10 @@ class CategoryViewTests(APITestCase):
         response = self.client.get(self.url_list)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_retrieve_category(self):
+        response = self.client.get(self.url_detail)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.category.id)
 
 class ProductViewTests(APITestCase):
     def setUp(self):

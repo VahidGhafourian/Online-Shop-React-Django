@@ -14,23 +14,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 import json
 
-
-# class UserLogoutView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     """
-#         Method: POST \n
-#             Use for user logout \n
-#             - User must be logged in before this. \n
-#         return: \n
-#             - success: True if user successfully logged out (200). Otherwise False (400). \n
-#     """
-
-#     def post(self, request, *args, **kwargs):
-#         if request.user:
-#             logout(request)
-#             return Response({'success': True}, status=status.HTTP_200_OK)
-#         return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
-
 class UserCheckLoginPhone(APIView): # NEW
     """
         Method: POST \n
