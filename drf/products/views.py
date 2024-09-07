@@ -45,6 +45,13 @@ class ProductListView(APIView):
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def post(self, request):
+        serializer = ProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class ProductDetailView(APIView):
     """
         Method: Get \n
@@ -69,6 +76,76 @@ class ProductDetailView(APIView):
         serializer = ProductSerializer(product)
         return Response(serializer.data)
 
+    def put(self, request, pk, format=None):
+        product = self.get_object(pk)
+        serializer = ProductSerializer(product, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        product = self.get_object(pk)
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProductVariantListView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
+    def get(self, request):
+        product_id = request.query_params.get('product')
+
+        if product_id:
+            variants = ProductVariant.objects.filter(product_id=product_id)
+        else:
+            variants = ProductVariant.objects.all()
+
+        serializer = ProductVariantSerializer(variants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ProductVariantSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ProductVariantDetailView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
+    def get_object(self, pk):
+        try:
+            return ProductVariant.objects.get(pk=pk)
+        except ProductVariant.DoesNotExist:
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk):
+        variant = self.get_object(pk)
+        serializer = ProductVariantSerializer(variant)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        variant = self.get_object(pk)
+        serializer = ProductVariantSerializer(variant, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        variant = self.get_object(pk)
+        variant.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class CategoryListView(APIView):
     def get_permissions(self):
         if self.request.method in ['POST']:
@@ -82,6 +159,13 @@ class CategoryListView(APIView):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoryDetailView(APIView):
     def get_permissions(self):
@@ -99,6 +183,74 @@ class CategoryDetailView(APIView):
         category = self.get_object(pk)
         serializer = CategorySerializer(category)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        category = self.get_object(pk)
+        serializer = CategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        category = self.get_object(pk)
+        category.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProductImageListView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
+    def get(self, request):
+        product_id = request.query_params.get('product')
+
+        if product_id:
+            images = ProductImage.objects.filter(product_id=product_id)
+        else:
+            images = ProductImage.objects.all()
+
+        serializer = ProductImageSerializer(images, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ProductImageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ProductImageDetailView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
+    def get_object(self, pk):
+        try:
+            return ProductImage.objects.get(pk=pk)
+        except ProductImage.DoesNotExist:
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk):
+        image = self.get_object(pk)
+        serializer = ProductImageSerializer(image)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        image = self.get_object(pk)
+        serializer = ProductImageSerializer(image, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        image = self.get_object(pk)
+        image.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 """
 # class OrderAddView(APIView):

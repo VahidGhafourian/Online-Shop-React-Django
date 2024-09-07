@@ -10,6 +10,8 @@ class CategorySerializer(serializers.ModelSerializer):
             'product_attributes_schema', 'variant_attributes_schema'
         ]
 
+    # TODO: Add JSON schema validation for product_attributes_schema & variant_attributes_schema
+
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
