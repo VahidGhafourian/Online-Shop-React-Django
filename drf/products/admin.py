@@ -2,7 +2,7 @@ from typing import Any
 from django.contrib import admin
 from django.db.models.fields.json import JSONField
 from jsoneditor.forms import JSONEditor
-from .models import Category, Product, ProductVariant, ProductImage
+from .models import Category, Product, ProductVariant, ProductImage, Inventory, Review, Tag
 from .adminforms import ProductAdminForm, ProductVariantAdminForm
 
 
@@ -25,7 +25,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 class ProductVariantAdmin(admin.ModelAdmin):
     form = ProductVariantAdminForm
-    list_display = ('id', 'product', 'price', 'items_count')
+    list_display = ('id', 'product', 'price')
     # ordering = ['pk']
 
 
@@ -33,7 +33,9 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(ProductVariant, ProductVariantAdmin)
 admin.site.register(ProductImage)
-
+admin.site.register(Inventory)
+admin.site.register(Review)
+admin.site.register(Tag)
 
 # class OrderItemInline(admin.TabularInline):
 #     model = OrderItem

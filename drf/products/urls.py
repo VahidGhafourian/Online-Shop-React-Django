@@ -3,11 +3,15 @@ from .views import (
   CategoryListView,
   CategoryDetailView,
   ProductListView,
-  ProductDetailView,
+  ProductListView,
   ProductVariantListView,
   ProductVariantDetailView,
   ProductImageListView,
   ProductImageDetailView,
+  TagListView,
+  TagDetailView,
+  InventoryView,
+  ReviewView,
   )
 
 app_name = 'products'
@@ -15,7 +19,7 @@ app_name = 'products'
 urlpatterns = [
     path('products/', ProductListView.as_view(),
          name='product-list'),
-    path('products/<int:pk>/', ProductDetailView.as_view(),
+    path('products/<int:pk>/', ProductListView.as_view(),
          name='product-detail'),
 
     path('product-variants/', ProductVariantListView.as_view(),
@@ -28,8 +32,19 @@ urlpatterns = [
     path('product-images/<int:pk>/', ProductImageDetailView.as_view(),
          name='product-image-detail'),
 
-    path('categories/', CategoryListView.as_view(), 
+    path('categories/', CategoryListView.as_view(),
          name='category-list'),
     path('categories/<int:pk>/', CategoryDetailView.as_view(),
          name='category-detail'),
+
+    path('tags/', TagListView.as_view(),
+         name='tag-list'),
+    path('tags/<str:slug>/', TagDetailView.as_view(),
+         name='tag-detail'),
+
+    path('inventory/<int:product_variant_id>/', InventoryView.as_view(),
+         name='inventory-detail'),
+
+    path('review/<int:product_id>/', ReviewView.as_view(),
+         name='review-list'),
 ]
