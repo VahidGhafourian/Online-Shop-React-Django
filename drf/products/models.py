@@ -1,6 +1,9 @@
 from django.db import models
 from django.urls import reverse
 from ckeditor.fields import RichTextField
+from account.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.text import slugify
 
 class Category(models.Model):
     parent = models.ForeignKey('self',
@@ -31,8 +34,8 @@ class Product(models.Model):
                                  on_delete=models.SET_NULL,
                                  null=True,
                                  limit_choices_to={'children__isnull': True},)
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True)
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
     # image = models.ImageField(null=True, blank=True)
     description = RichTextField(null=True, blank=True)
     available = models.BooleanField(default=True)
@@ -42,6 +45,11 @@ class Product(models.Model):
 
     # class Meta:
         # ordering = ('title', )
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -54,9 +62,15 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(Product,
                                 on_delete=models.CASCADE,
                                 related_name='variants')
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
     price = models.PositiveIntegerField()
-    items_count = models.PositiveIntegerField()
     attributes = models.JSONField(default=dict, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product.title} - Variant"
@@ -65,10 +79,43 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product,
                                 on_delete=models.CASCADE,
                                 related_name='images')
-    image = models.ImageField(upload_to='product_images/')
+    image = models.ImageField(upload_to='product_images/', default='product_images/default.png')
     alt_text = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return f"Image of {self.product.title}"
 
-# TODO: Tag, Review, Vendor, Inventory
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
+    products = models.ManyToManyField(Product, related_name='tags', blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Review(models.Model):
+    product = models.ForeignKey(Product,on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )  # Assuming a 1-5 rating system
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    approval = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('product', 'user')  # Ensures one review per user per product
+
+    def __str__(self):
+        return f"Review of {self.product.title} by {self.user.phone_number}"
+
+
+class Inventory(models.Model):
+    product_variant = models.OneToOneField(ProductVariant, on_delete=models.CASCADE, related_name='inventory')
+    quantity = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"Inventory for {self.product_variant}"
