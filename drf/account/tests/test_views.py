@@ -1,68 +1,93 @@
+from django.test import TestCase
 from django.urls import reverse
+from rest_framework.test import APIClient
 from rest_framework import status
-from rest_framework.test import APITestCase
-from rest_framework_simplejwt.tokens import RefreshToken
-from account.models import User, OtpCode, Address
-from account.factories import UserFactory, AddressFactory
-import random
-import json
+from account.models import OtpCode, Address, User
+from account.factories import UserFactory, OtpCodeFactory, AddressFactory
+from django.utils import timezone
+from unittest.mock import patch
 
-class UserCheckLoginPhoneTests(APITestCase):
+class UserCheckLoginPhoneTest(TestCase):
     def setUp(self):
-        self.existing_user = UserFactory(phone_number='09123456789')
+        self.client = APIClient()
         self.url = reverse('account:check_login_phone')
+        self.user = UserFactory(phone_number='09123456789', password='testpass123')
 
-    def test_check_existing_phone_number(self):
-        response = self.client.post(self.url, {'phoneNumber': self.existing_user.phone_number})
+    def test_existing_user_with_password(self):
+        data = {'phone_number': '09123456789'}
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['newUser'], False)
+        self.assertEqual(response.data, {'new_user': False, 'have_pass': True})
 
-    def test_check_new_phone_number(self):
-        response = self.client.post(self.url, {'phoneNumber': '09111111111'})
+    def test_existing_user_without_password(self):
+        self.user = User.objects.create(phone_number='09129876543')
+        data = {'phone_number': '09129876543'}
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['newUser'], True)
+        self.assertEqual(response.data, {'new_user': False, 'have_pass': False})
 
+    def test_new_user(self):
+        data = {'phone_number': '09987654321'}
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {'new_user': True, 'have_pass': False})
 
-class GenerateSendOTPTests(APITestCase):
+    def test_missing_phone_number(self):
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class GenerateSendOTPTest(TestCase):
     def setUp(self):
+        self.client = APIClient()
         self.url = reverse('account:send-otp')
-        self.phone_number = '09123456789'
 
-    def test_generate_and_send_otp(self):
-        response = self.client.post(self.url, {'phoneNumber': self.phone_number})
+    @patch('account.views.generate_otp')
+    def test_generate_and_send_otp(self, mock_generate_otp):
+        mock_generate_otp.return_value = '12345'
+        data = {'phone_number': '09123456789'}
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['success'])
-        self.assertEqual(response.data['message'], 'OTP sent successfully')
+        self.assertEqual(response.data['otp_code'], '12345')
+        self.assertTrue(OtpCode.objects.filter(phone_number='09123456789', code='12345').exists())
 
-    def test_otp_creation_in_database(self):
-        self.client.post(self.url, {'phoneNumber': self.phone_number})
-        self.assertTrue(OtpCode.objects.filter(phone_number=self.phone_number).exists())
+    def test_invalid_phone_number(self):
+        data = {'phone_number': 'invalid'}
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
-class VerifyOTPTests(APITestCase):
+class VerifyOTPTest(TestCase):
     def setUp(self):
-        self.phone_number = '09123456789'
-        self.otp_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
-        self.user = UserFactory(phone_number=self.phone_number)
-        OtpCode.objects.create(phone_number=self.phone_number, code=self.otp_code)
+        self.client = APIClient()
         self.url = reverse('account:verify_otp')
+        self.user = UserFactory(phone_number='09123456789', password='testpass123')
+        self.otp = OtpCodeFactory(phone_number='09123456789', code='12345')
 
-    def test_verify_valid_otp(self):
-        response = self.client.post(self.url, {'phone_number': self.phone_number, 'otp': self.otp_code})
+    def test_valid_otp(self):
+        data = {'phone_number': '09123456789', 'otp': '12345'}
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['success'])
         self.assertIn('access', response.data)
         self.assertIn('refresh', response.data)
 
-    def test_verify_invalid_otp(self):
-        response = self.client.post(self.url, {'phone_number': self.phone_number, 'otp': '000000'})
+    def test_invalid_otp(self):
+        data = {'phone_number': '09123456789', 'otp': '00000'}
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data['success'])
-        self.assertEqual(response.data['message'], 'Invalid OTP')
 
+    def test_expired_otp(self):
+        self.otp.expires_at = timezone.now() - timezone.timedelta(minutes=10)
+        self.otp.save()
+        data = {'phone_number': '09123456789', 'otp': '12345'}
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data['success'])
 
-class UserInfoViewTests(APITestCase):
+class UserInfoViewTest(TestCase):
     def setUp(self):
+        self.client = APIClient()
         self.user = UserFactory()
         self.url = reverse('account:user-info')
         self.client.force_authenticate(user=self.user)
@@ -72,55 +97,48 @@ class UserInfoViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['phone_number'], self.user.phone_number)
 
-    def test_update_user_password(self):
-        response = self.client.post(self.url, {'password': 'newpassword', 'confirm_password': 'newpassword'})
+    def test_update_password(self):
+        data = {'password': 'newpassword123', 'confirm_password': 'newpassword123'}
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['success'])
-        self.assertEqual(response.data['message'], 'Password updated successfully')
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('newpassword123'))
 
-    def test_update_user_password_mismatch(self):
-        response = self.client.post(self.url, {'password': 'newpassword', 'confirm_password': 'wrongpassword'})
+    def test_update_password_mismatch(self):
+        data = {'password': 'newpassword123', 'confirm_password': 'differentpassword'}
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data['success'])
-        self.assertIn('errors', response.data)
 
-
-class AddressViewTests(APITestCase):
+class AddressViewTest(TestCase):
     def setUp(self):
+        self.client = APIClient()
         self.user = UserFactory()
-        self.address = AddressFactory(user=self.user)
         self.url = reverse('account:add-address')
         self.client.force_authenticate(user=self.user)
 
     def test_get_user_addresses(self):
-        url = reverse('account:user-addresses')
-        response = self.client.get(url)
+        AddressFactory.create_batch(3, user=self.user)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['postal_code'], self.address.postal_code)
+        self.assertEqual(len(response.data), 3)
 
-    def test_add_new_address(self):
-        newAddressForm = {
-            'is_default': False,
-            'country': 'Iran',
-            'state': 'Tehran',
-            'city': 'Tehran',
-            'street': 'New Street',
-            'postal_code': '123456',
+    def test_add_address(self):
+        data = {
+            'is_default': True,
+            'country': 'Test Country',
+            'state': 'Test State',
+            'city': 'Test City',
+            'street': 'Test Street',
+            'postal_code': '12345'
         }
-        response = self.client.post(self.url, newAddressForm)
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['postal_code'], newAddressForm['postal_code'])
+        self.assertEqual(Address.objects.count(), 1)
+        self.assertEqual(Address.objects.first().user, self.user)
 
-    def test_add_address_invalid_data(self):
-        newAddressForm = {
-            'is_default': False,
-            'country': '',
-            'state': 'Tehran',
-            'city': 'Tehran',
-            'street': 'New Street',
-            'postal_code': '123456',
-        }
-
-        response = self.client.post(self.url, newAddressForm)
+    def test_add_invalid_address(self):
+        data = {'country': 'Test Country'}  # Missing required fields
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

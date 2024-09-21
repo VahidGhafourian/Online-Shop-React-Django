@@ -1,6 +1,6 @@
 from utils import send_otp_code
 from .models import OtpCode, User, Address
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from .serializers import UserRegisterSerializer, OtpCodeSerializer, AddressSerializer
 from rest_framework.response import Response

@@ -21,7 +21,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = [] # This is jost for createsuperuser command.
 
     def __str__(self):
-        return f'{self.last_name} - {self.email} - {self.phone_number}'
+        return f'{self.phone_number}'
 
     class Meta:
         constraints = [
@@ -46,8 +46,7 @@ class OtpCode(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.phone_number} - {self.code} - {self.created}'
-
+        return f'{self.phone_number} - {self.code} - {self.created_at}'
 
 class Address(models.Model):
     is_default = models.BooleanField(default=False)

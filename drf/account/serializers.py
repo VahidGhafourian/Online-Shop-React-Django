@@ -24,11 +24,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('confirm_password', None)
+        password = validated_data.pop('password', None)
 
-        user, created = User.objects.get_or_create(phone_number=validated_data['phone_number'])
+        user, created = User.objects.get_or_create(validated_data)
         if created:
-            if 'password' in validated_data:
-                user.set_password(validated_data['password'])
+            if password:
+                user.set_password(password)
             user.save()
         return user
 
@@ -49,12 +50,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-
-
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ('id', 'email', 'phone_number', 'first_name', 'last_name', 'date_joined')
 
 class OtpCodeSerializer(serializers.ModelSerializer):
     class Meta:
