@@ -1,18 +1,13 @@
 from django.urls import path
-from . import views
+from .views import (
+    CheckoutView,
+    PaymentVerificationView
+)
 
 app_name = 'payments'
 
 urlpatterns = [
-    path('payments/', views.PaymentsList.as_view(), name="payments_list"),
-    path('payments/create/', views.PaymentsList.as_view(), name="create_payment"),
-    path('payments/<int:id>/', views.PaymentDetail.as_view(), name="payment_detail"),
-    path('transactions/', views.TransactionsList.as_view(), name="transactions_list"),
-    path('transactions/<int:id>/', views.TransactionDetail.as_view(), name="transactions_detail"),
-    path('discounts/', views.DiscountList.as_view(), name="discounts_list"),
-    path('discounts/<int:id>/', views.DiscountDetail.as_view(), name="discounts_detail"),
-    path('coupons/', views.CouponList.as_view(), name="coupon_list"),
-    path('coupons/<int:id>/', views.CouponDetail.as_view(), name="coupon_detail"),
-    path('coupons/apply/', views.ApplyCoupon.as_view(), name="apply_coupon"),
+    path('checkout/', CheckoutView.as_view(), name='checkout'),
+    path('verify-payment/', PaymentVerificationView.as_view(), name='verify_payment'),
 
 ]

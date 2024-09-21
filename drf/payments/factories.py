@@ -1,50 +1,95 @@
 import factory
 from factory.django import DjangoModelFactory
 from faker import Faker
-from .models import Payment, Transaction, Discount, Coupon
+from .models import Payment, Discount, Coupon
 from orders.factories import OrderFactory
-from account.factories import UserFactory
+from products.factories import ProductVariantFactory, CategoryFactory
+from django.utils import timezone
+from datetime import timezone as tz
 
+
+fake = Faker()
 
 class PaymentFactory(DjangoModelFactory):
     class Meta:
         model = Payment
 
     order = factory.SubFactory(OrderFactory)
-    amount = factory.Faker('random_number', digits=6)
-    payment_method = factory.Faker('word')
-    successful = factory.Faker('boolean')
-    timestamp = factory.Faker('date_time_this_year')
-
-class TransactionFactory(DjangoModelFactory):
-    class Meta:
-        model = Transaction
-
-    user = factory.SubFactory(UserFactory)
-    order = factory.SubFactory(OrderFactory)
-    # payment = factory.SubFactory(PaymentFactory)  # Assuming a Transaction is linked to a Payment
-    amount = factory.Faker('random_number', digits=6)
+    amount = factory.Faker('random_int', min=1000, max=1000000)
+    payment_method = factory.Iterator([choice[1] for choice in Payment.Method.choices])
+    status = factory.Iterator([choice[0] for choice in Payment.Status.choices])
+    timestamp = factory.LazyFunction(timezone.now)
     transaction_id = factory.Faker('uuid4')
-    timestamp = factory.Faker('date_time_this_year')
-    status = factory.Faker('word')
 
 class DiscountFactory(DjangoModelFactory):
     class Meta:
         model = Discount
 
-    code = factory.Faker('word')
-    description = factory.Faker('text', max_nb_chars=200)
-    discount_percent = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True, min_value=0, max_value=100)
-    valid_from = factory.Faker('date_time_this_year')
-    valid_to = factory.Faker('date_time_this_year')
-    active = factory.Faker('boolean')
+    description = factory.Faker('sentence')
+    discount_percent = factory.Faker('random_int', min=1, max=80)
+    valid_from = factory.Faker('date_time_this_year', before_now=True, after_now=False, tzinfo=tz.utc)
+    valid_to = factory.LazyAttribute(lambda o: o.valid_from + timezone.timedelta(days=fake.random_int(min=1, max=90)))
+
+    @factory.post_generation
+    def applicable_to(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for product_variant in extracted:
+                self.applicable_to.add(product_variant)
+        else:
+            num_variants = fake.random_int(min=0, max=5)
+            variants = ProductVariantFactory.create_batch(num_variants)
+            self.applicable_to.add(*variants)
+
+    @factory.post_generation
+    def applicable_categories(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for category in extracted:
+                self.applicable_categories.add(category)
+        else:
+            num_categories = fake.random_int(min=0, max=3)
+            categories = CategoryFactory.create_batch(num_categories)
+            self.applicable_categories.add(*categories)
 
 class CouponFactory(DjangoModelFactory):
     class Meta:
         model = Coupon
 
-    code = factory.Faker('word')
-    discount = factory.Faker('random_int', min=0, max=80)
-    valid_from = factory.Faker('date_time_this_year')
-    valid_to = factory.Faker('date_time_this_year')
+    code = factory.Sequence(lambda n: f'COUPON{n:04d}')
+    discount_percent = factory.Faker('random_int', min=1, max=80)
+    valid_from = factory.Faker('date_time_this_year', before_now=True, after_now=False, tzinfo=tz.utc)
+    valid_to = factory.LazyAttribute(lambda o: o.valid_from + timezone.timedelta(days=fake.random_int(min=1, max=90)))
     active = factory.Faker('boolean')
+    usage_limit = factory.Faker('random_int', min=1, max=100)
+    usage_count = factory.LazyAttribute(lambda o: fake.random_int(min=0, max=o.usage_limit))
+
+    @factory.post_generation
+    def applicable_to(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for product_variant in extracted:
+                self.applicable_to.add(product_variant)
+        else:
+            num_variants = fake.random_int(min=0, max=5)
+            variants = ProductVariantFactory.create_batch(num_variants)
+            self.applicable_to.add(*variants)
+
+    @factory.post_generation
+    def applicable_categories(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for category in extracted:
+                self.applicable_categories.add(category)
+        else:
+            num_categories = fake.random_int(min=0, max=3)
+            categories = CategoryFactory.create_batch(num_categories)
+            self.applicable_categories.add(*categories)

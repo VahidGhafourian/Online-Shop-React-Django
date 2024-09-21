@@ -1,27 +1,27 @@
 from rest_framework import serializers
-from .models import Payment, Transaction
-from .models import Discount, Coupon
+from .models import Discount, Coupon, Payment
+from products.serializers import ProductVariantSerializer, CategorySerializer
 
-class PaymentSerializer(serializers.ModelSerializer):
+class PaymentSerializer(serializers.ModelSerializer):    # Adding format to the datetime fields
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
+
     class Meta:
         model = Payment
         fields = ['id', 'user', 'order', 'amount', 'status', 'created_at']
 
-class TransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = ['id', 'payment', 'transaction_id', 'status', 'created_at']
-
-
 class DiscountSerializer(serializers.ModelSerializer):
+    applicable_to = ProductVariantSerializer(many=True, read_only=True)
+    applicable_categories = CategorySerializer(many=True, read_only=True)
+
     class Meta:
         model = Discount
-        fields = ['id', 'code', 'amount', 'is_active']
+        fields = '__all__'
+
 
 class CouponSerializer(serializers.ModelSerializer):
+    applicable_to = ProductVariantSerializer(many=True, read_only=True)
+    applicable_categories = CategorySerializer(many=True, read_only=True)
+
     class Meta:
         model = Coupon
-        fields = ['id', 'code', 'discount', 'is_active']
-
-class ApplyCouponSerializer(serializers.Serializer):
-    code = serializers.CharField()
+        fields = '__all__'

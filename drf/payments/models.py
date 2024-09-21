@@ -1,35 +1,33 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from orders.models import Order
-from account.models import User
 from products.models import Category, ProductVariant
-from time import timezone
+from django.utils import timezone
 
 class Payment(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Waiting for payment'
+        SUCCESSFUL = 'successful', 'Successful'
+        FAILED = 'failed', 'Failed'
+    class Method(models.TextChoices):
+        CARD_TO_CARD = 'CARD_TO_CARD', 'Cart to cart'
+        ONLINE_GATEWAY = 'ONLINE_GATEWAY', 'Online gateway payment'
+        WALLET = 'WALLET', 'Wallet payment'
+        CASH_ON_DELIVERY = 'CASH_ON_DELIVERY', 'Cash on delivery'
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payments')
     amount = models.PositiveBigIntegerField()
-    payment_method = models.CharField(max_length=50)
-    successful = models.BooleanField(default=False)
+    payment_method = models.CharField(max_length=50, choices=Method.choices, default=Method.ONLINE_GATEWAY)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     timestamp = models.DateTimeField(auto_now_add=True)
+    transaction_id = models.CharField(max_length=100)
 
     def __str__(self):
         return f'Payment for Order {self.order.id} {self.status=}'
 
-class Transaction(models.Model): #TODO: is this model ok? or we should give a foreignkey to payment?
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    amount = models.PositiveBigIntegerField()
-    # payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='transactions')
-    transaction_id = models.CharField(max_length=100)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50)
-
-    def __str__(self):
-        return f"Transaction {self.transaction_id}"
-
 class Discount(models.Model):
     description = models.TextField(blank=True)
-    discount_percent = models.DecimalField(max_digits=5, decimal_places=2)
+    discount_percent = models.PositiveIntegerField(validators=[MinValueValidator(0), MaxValueValidator(80)])
     valid_from = models.DateTimeField()
     valid_to = models.DateTimeField()
     is_active = models.BooleanField(default=True)
@@ -57,8 +55,15 @@ class Coupon(models.Model):
         return self.is_active and self.usage_count < self.usage_limit and self.start_date <= timezone.now() <= self.end_date
 
     def calculate_discount(self, price):
-        return price * (self.discount_percentage / 100)
+        return price - (price * (self.discount_percentage / 100))
 
+    def is_valid(self):
+        now = timezone.now()
+        return (
+            self.active and
+            self.valid_from <= now <= self.valid_to and
+            self.usage_count < self.usage_limit
+        )
 
     def __str__(self):
         return self.code
