@@ -4,6 +4,10 @@ from .models import Category, Product, ProductVariant, ProductImage, Tag, Review
 import jsonschema
 
 class CategorySerializer(serializers.ModelSerializer):
+        # Adding format to the datetime fields
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
+    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
+
     class Meta:
         model = Category
         fields = [
@@ -46,6 +50,9 @@ class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     lowest_price = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
+    # Adding format to the datetime fields
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
+    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
 
     class Meta:
         model = Product
@@ -88,10 +95,12 @@ class ReviewSerializer(serializers.ModelSerializer):
     product = serializers.StringRelatedField(source='product.id')
     user = serializers.StringRelatedField(read_only=True)
 
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
+    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
+
     class Meta:
         model = Review
         fields = ['id', 'product', 'user', 'rating', 'comment', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']
 
 
 class InventorySerializer(serializers.ModelSerializer):
