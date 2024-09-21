@@ -27,6 +27,8 @@ if not is_test_running():
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-iw1xh*s(69_$p@=3lbb4$3g)q##!ojx=xv4zizovjz2n*^s38m'
+MERCHANT = os.getenv('MERCHANT', '0000')
+SANDBOX = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -60,6 +62,7 @@ INSTALLED_APPS = [
     'cart',
     'orders',
     'payments',
+    'zarinpal',
 ]
 
 MIDDLEWARE = [
