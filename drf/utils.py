@@ -2,6 +2,9 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from kavenegar import *
 import random
 
+def generate_otp():
+    return ''.join([str(random.randint(0, 9)) for _ in range(5)])
+
 def send_otp_code(phone_number, code):
     try:
         api = KavenegarAPI('4670534A4A78314F646B6B6C514542366673773775427A4A565263513937527176677A4966696D39766D673D')
@@ -15,8 +18,10 @@ def send_otp_code(phone_number, code):
 
     except APIException as e:
         print(e)
+        raise e
     except HTTPException as e:
         print(e)
+        raise e
 
 class IsAdminUserMixin(UserPassesTestMixin):
     def test_func(self):
