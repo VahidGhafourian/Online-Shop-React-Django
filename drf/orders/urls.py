@@ -1,19 +1,17 @@
 from django.urls import path
 from .views import (
-    OrderListView,
-    OrderDetailView,
-    OrderItemListView,
-    OrderItemDetailView
+    UserOrderListView,
+    AdminOrderListView,
+    AdminOrderDetailView,
+    AdminRefundOrderView,
 )
 
 app_name = 'orders'
 
 urlpatterns = [
-    path('orders/', OrderListView.as_view(), name='order-list'),
-    path('orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
+    path('', UserOrderListView.as_view(), name='user-order-list'),
+    path('admin/', AdminOrderListView.as_view(), name='all-order-list'),
+    path('<int:pk>/', AdminOrderDetailView.as_view(), name='order-detail'),
 
-    path('order-items/', OrderItemListView.as_view(), name='order-item-list'),
-    path('order-items/<int:pk>/', OrderItemDetailView.as_view(), name='order-item-detail'),
-    # path('orders/<int:id>/refound/', views.RefundRequestView.as_view(), name="refund-request"), #complete when refund model added to project
-
+    path('order-refound/admin/', AdminRefundOrderView.as_view(), name='refound-order'),
 ]

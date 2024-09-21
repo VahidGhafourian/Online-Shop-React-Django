@@ -1,26 +1,28 @@
 from django.db import models
-from account.models import User
+from account.models import User, Address
 from products.models import ProductVariant
 
 class Order(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        PAID = 'paid', 'Paid'
+        SHIPPED = 'shipped', 'In shipping process'
+        DELIVERED = 'delivered', 'Delivered to customer'
+        CANCELLED = 'cancelled', 'Cancelled'
+        FAILED = 'failed', 'Failed'
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # class Meta:
-    #     ordering = ('status', '-updated_at')
+    transaction_id = models.CharField(max_length=100)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    shipping_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f'Order {self.id} by user {str(self.user)}'
 
-
     def get_total_price(self):
-        total = sum(item.get_cost() for item in self.items.all())
-        # if self.discount:
-        #     discount_price = (self.discount / 100) * total
-        #     return int(total - discount_price)
-        return total
+        return sum(item.get_cost() for item in self.items.all())
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
