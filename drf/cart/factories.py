@@ -4,15 +4,31 @@ from faker import Faker
 from .models import Cart, CartItem
 from account.factories import UserFactory
 from products.factories import ProductVariantFactory
+from django.utils import timezone
+
+fake = Faker()
 
 class CartFactory(DjangoModelFactory):
     class Meta:
         model = Cart
 
     user = factory.SubFactory(UserFactory)
-    created_at = factory.Faker('date_time_this_year')
-    updated_at = factory.Faker('date_time_this_year')
+    created_at = factory.LazyFunction(timezone.now)
+    updated_at = factory.LazyFunction(timezone.now)
+    status = factory.Iterator([choice[0] for choice in Cart.Status.choices])
+    coupon = None #factory.SubFactory(CouponFactory)
 
+    @factory.post_generation
+    def items(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for item in extracted:
+                self.items.add(item)
+        else:
+            # Create 1 to 5 OrderItems by default
+            CartItemFactory.create_batch(fake.random_int(min=1, max=5), cart=self)
 
 class CartItemFactory(DjangoModelFactory):
     class Meta:
@@ -20,5 +36,6 @@ class CartItemFactory(DjangoModelFactory):
 
     cart = factory.SubFactory(CartFactory)
     product_variant = factory.SubFactory(ProductVariantFactory)
-    items_count = factory.Faker('random_int', min=1, max=10)
-    added_at = factory.Faker('date_time_this_year')
+    quantity = factory.Faker('random_int', min=1, max=3)
+    price = factory.Faker('random_int', min=1000, max=100000)  # Assuming price is in cents
+    added_at = factory.LazyFunction(timezone.now)

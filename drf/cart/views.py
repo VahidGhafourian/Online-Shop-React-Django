@@ -4,97 +4,145 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Cart, CartItem
 from .serializers import CartSerializer, CartItemSerializer
-from payments.models import Discount
+from django.shortcuts import get_object_or_404
+from payments.models import Coupon
 
 class CartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_cart(self, request):
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        # print(created)
+        cart, _ = Cart.objects.get_or_create(user=request.user)
         return cart
 
-    """
-    Method: GET
-        Retrieve the cart details.
-    Input:
-        - Authenticated request
-    Return:
-        - ['user', 'items']
-    """
     def get(self, request):
+        """
+          Method: GET
+            - Retrieve the cart details.
+          Input:
+            - Authenticated request
+          Return:
+            - ['user', 'items']
+        """
         cart = self.get_cart(request)
-        cart = self.apply_discounts(cart)
         serializer = CartSerializer(cart)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    """
-    Method: POST
-        Add an item to the cart.
-    Input:
-        - ['product_variant', 'items_count']
-    Return:
-        - ['product_variant', 'items_count']
-    """
     def post(self, request):
+        """
+          Method: POST
+            - Add an item to the cart.
+          Input:
+            - ['product_variant', 'quantity']
+          Return:
+            - ['product_variant', 'quantity']
+        """
         cart = self.get_cart(request)
-        data = request.data
-        # print(cart.items)
-        data['cart'] = cart.id
+        product_variant_id = request.data.get('product_variant')
+        quantity = int(request.data.get('quantity', 1))
 
-        # Check if the item already exists and update quantity if necessary
-        existing_item = CartItem.objects.filter(cart=cart, product_variant=data.get('product_variant')).first()
-        if existing_item:
-            data['items_count'] = existing_item.items_count + int(data.get('items_count', 1))
-            serializer = CartItemSerializer(existing_item, data=data, partial=True)
-        else:
+        if not product_variant_id:
+            return Response({"error": "Product variant ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the item is already in the cart
+        try:
+            cart_item = CartItem.objects.get(cart=cart, product_variant_id=product_variant_id)
+            cart_item.quantity += quantity
+            cart_item.save()
+            return Response(CartItemSerializer(cart_item).data, status=status.HTTP_200_OK)
+        except CartItem.DoesNotExist:
+            # Item is not in the cart, create a new one
+            data = request.data.copy()
+            data['cart'] = cart.id
             serializer = CartItemSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def put(self, request, item_id):
+        """
+          Method: PUT
+            - Update an item's quantity in the cart.
+          Input:
+            - [item_id, 'quantity']
+          Return:
+            - status 200 if its done. otherwise 404.
+        """
+        cart_item = get_object_or_404(CartItem, cart__user=request.user, id=item_id)
+        serializer = CartItemSerializer(cart_item, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    """
-    Method: DELETE
-        Remove an item from the cart.
-    Input:
-        - item_id
-    Return:
-        - status 200 if its done. otherwise 404.
-    """
     def delete(self, request, item_id):
+        """
+          Method: DELETE
+            - Remove an item from the cart."""
+        cart_item = get_object_or_404(CartItem, cart__user=request.user, id=item_id)
+        cart_item.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ClearCartView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        """
+          Method: DELETE
+            - Clear all items from the cart or remove the applied coupon.
+          Input:
+            action: "clear_items" or "remove_coupon". Default: "clear_items"
+        """
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        action = request.query_params.get('action', 'clear_items')
+        if action == 'clear_items':
+            cart.items.all().delete()
+            message = "Cart cleared successfully"
+        elif action == 'remove_coupon':
+            cart.coupon = None
+            cart.save()
+            message = "Coupon removed successfully"
+        else:
+            return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": message}, status=status.HTTP_200_OK)
+
+class ApplyCouponView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        Method: POST
+          - Applying coupons to the cart
+        Input:
+          - coupon_code
+        """
+        coupon_code = request.data.get('coupon_code')
+        if not coupon_code:
+            return Response({"error": "Coupon code is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        cart = Cart.objects.get(user=request.user)
+        # Check if a coupon is already applied
+        if cart.coupon:
+            return Response({"error": "A coupon is already applied to this cart"}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            cart_item = CartItem.objects.get(cart__user=request.user, id=item_id)
-            cart_item.delete()
-            return Response(status=status.HTTP_200_OK)
-        except CartItem.DoesNotExist:
-            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+            coupon = Coupon.objects.get(code=coupon_code, active=True)
+        except Coupon.DoesNotExist:
+            return Response({"error": "Invalid coupon code"}, status=status.HTTP_400_BAD_REQUEST)
 
-    """
-    Method: PUT
-        Update an item in the cart.
-    Input:
-        - item_id, ['items_count']
-    Return:
-        - status 200 if its done. otherwise 404.
-    """
-    def put(self, request, item_id):
-        try:
-            cart_item = CartItem.objects.get(cart__user=request.user, id=item_id)
-            serializer = CartItemSerializer(cart_item, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not coupon.is_valid():
+            return Response({"error": "Coupon is not valid"}, status=status.HTTP_400_BAD_REQUEST)
 
-        except CartItem.DoesNotExist:
-            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        # Check if the coupon is applicable to the items in the cart
+        if not any(item.product_variant in coupon.applicable_to.all() or
+                   item.product_variant.product.category in coupon.applicable_categories.all()
+                   for item in cart.items.all()):
+            return Response({"error": "Coupon is not applicable to any items in your cart"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def apply_discounts(self, cart):
-        """Apply discounts to the cart items."""
-        for item in cart.items.all():
-            discounts = Discount.objects.filter(applicable_to=item.product_variant, is_active=True)
-            for discount in discounts:
-                item.price -= discount.calculate_discount(item.price)
-        return cart
+        cart.coupon = coupon
+        cart.save()
+
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
