@@ -33,8 +33,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class OtpCode(models.Model):
     phone_number = models.CharField(max_length=13, unique=True)
-    code = models.CharField(max_length=7)
-    created = models.DateTimeField(auto_now_add=True)
+    code = models.CharField(max_length=5)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
 
     class Meta:
         constraints = [

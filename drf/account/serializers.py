@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User, OtpCode, Address
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.utils import timezone
+from datetime import timedelta
 
 
 def clean_email(value):
@@ -58,10 +59,23 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class OtpCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OtpCode
-        fields = '__all__'
+        fields = ['phone_number', 'code', 'created_at']
+        read_only_fields = ['created_at']
+
+    def validate_phone_number(self, value):
+        if not value.isdigit() or len(value) != 11:
+            raise serializers.ValidationError("Phone number must be 11 digits.")
+        return value
+
+    def validate_code(self, value):
+        if not value.isdigit() or len(value) != 5:
+            raise serializers.ValidationError("OTP code must be 5 digits.")
+        return value
 
     def create(self, validated_data):
-        return OtpCode.objects.create(**validated_data)
+        # Set expiration time (e.g., 5 minutes from now)
+        validated_data['expires_at'] = timezone.now() + timedelta(minutes=5)
+        return super().create(validated_data)
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:

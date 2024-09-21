@@ -1,31 +1,28 @@
-import random
 from utils import send_otp_code
 from .models import OtpCode, User, Address
-from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from .serializers import UserRegisterSerializer, OtpCodeSerializer, AddressSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from utils import generate_otp, send_otp_code
+from django.utils import timezone
 
-import json
 
-class UserCheckLoginPhone(APIView): # NEW
+class UserCheckLoginPhone(APIView):
     """
         Method: POST \n
-            use to check entered phone number existence in db and have password or not.
+            Check entered phone number existence in db and have password or not. \n
         Input: \n
-            - phoneNumber: 11 digits \n
+            - phone_number: 11 digits \n
         return: \n
-            - newUser: True if this phone number doesn't found in db. False if phone number found in db.
-            - havePass: True if the user already have password. False if user doesn't set password.
+            - newUser: True if this phone number doesn't found in db. False if phone number found in db. \n
+            - havePass: True if the user already have password. False if user doesn't set password. \n
     """
     def post(self, request, *args, **kwargs):
-        phone_number = request.data.get('phoneNumber')
+        phone_number = request.data.get('phone_number')
         if not phone_number:
             return Response({'error': 'Phone number is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -39,12 +36,12 @@ class UserCheckLoginPhone(APIView): # NEW
             have_pass = False
             new_user = True
 
-        return Response({'newUser': new_user, 'havePass': have_pass}, status=status.HTTP_200_OK)
+        return Response({'new_user': new_user, 'have_pass': have_pass}, status=status.HTTP_200_OK)
 
 class GenerateSendOTP(APIView):
     """
     Method: POST \n
-        Use to generate and send OTP to the provided phone number.\n
+        - Generate and send OTP to the provided phone number.\n
     Input: \n
         - phone_number: 11 digits \n
     Return: \n
@@ -52,103 +49,137 @@ class GenerateSendOTP(APIView):
         - message: Informational message \n
     """
     def post(self, request, *args, **kwargs):
-        phone_number = request.data.get('phoneNumber')
-        print(phone_number)
-        # Generate a random 6-digit OTP
-        otp_code = ''.join([str(random.randint(0, 9)) for _ in range(5)])
+        phone_number = request.data.get('phone_number')
 
-        # Save the OTP in your backend (e.g., in a model or cache)
-        ser_OtpCode = OtpCodeSerializer(data={'code': otp_code,
-                                              'phone_number': phone_number})
-        OtpCode.objects.filter(phone_number= phone_number).delete()
-        if ser_OtpCode.is_valid():
-            ser_OtpCode.save()
-            print(otp_code)
-            # Send the OTP to the user (you can use an SMS gateway or any other method)
-            # TODO
-            # send_otp_code(phone_number, otp_code)
-            return Response({'success': True, 'otp_code': otp_code, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
-        else:
-            # print(ser_OtpCode.errors)
-            return Response({'success': False, 'message': ser_OtpCode.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-class VerifyOTP(APIView):
-    """
-    Method: POST
-        Use to verify the entered OTP and proceed to registration.
-    Input:
-        - phone_number: 11 digits
-        - otp: 6-digit OTP
-    Return:
-        - success: True if OTP is valid, False otherwise
-        - message: Informational message
-        - access: JWT access token if OTP is valid
-        - refresh: JWT refresh token if OTP is valid
-    """
-    def post(self, request, *args, **kwargs):
-        data = request.data
-        phone_number = data.get('phone_number')
-        entered_otp = data.get('otp')
-        if OtpCode.objects.filter(phone_number=phone_number, code=entered_otp).exists():
-
-            user_exists = User.objects.filter(phone_number=phone_number).exists()
-            if user_exists:
-                user = User.objects.get(phone_number=phone_number)
-            else:
-                user_serializer = UserRegisterSerializer(data={**data, 'phone_number': phone_number})
-                if user_serializer.is_valid():
-                    user = user_serializer.save()
-                else:
-                    # print(user_serializer.errors)
-                    return Response({'success': False, 'message': 'Cannot Create new user.'},
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-                # Generate tokens for the registered user
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
+        try:
+            otp_code = generate_otp()
+            self.save_otp(phone_number, otp_code)
+            # self.send_otp(phone_number, otp_code) # uncomment in production
 
             return Response({
                 'success': True,
+                'otp_code': otp_code,
+                'message': 'OTP sent successfully'
+            }, status=status.HTTP_200_OK)
+
+        except ValidationError as e:
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': 'An unexpected error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def save_otp(self, phone_number, otp_code):
+        OtpCode.objects.filter(phone_number=phone_number).delete()
+        serializer = OtpCodeSerializer(data={
+            'phone_number': phone_number,
+            'code': otp_code
+        })
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+    def send_otp(self, phone_number, otp_code):
+        try:
+            send_otp_code(phone_number, otp_code)
+        except Exception as e:
+            raise ValidationError('Failed to send OTP. Please try again later.')
+
+class VerifyOTP(APIView):
+    """
+    Method: POST \n
+        Verify the entered OTP and proceed to registration. \n
+    Input: \n
+        - phone_number: 11 digits \n
+        - otp: 5-digit OTP \n
+    Return: \n
+        - success: True if OTP is valid, False otherwise \n
+        - message: Informational message \n
+        - access: JWT access token if OTP is valid \n
+        - refresh: JWT refresh token if OTP is valid \n
+    """
+    def post(self, request):
+        try:
+            phone_number = request.data.get('phone_number')
+            entered_otp = request.data.get('otp')
+
+            self.validate_input(phone_number, entered_otp)
+            self.verify_otp(phone_number, entered_otp)
+            user = self.get_or_create_user(request.data)
+
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'success': True,
                 'message': 'OTP verified successfully',
-                'access': access_token,
-                'refresh': refresh_token,
-                }, status=status.HTTP_200_OK)
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }, status=status.HTTP_200_OK)
 
+        except ValidationError as e:
+            return Response({'success': False, 'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'success': False, 'message': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def validate_input(self, phone_number, entered_otp):
+        if not phone_number or not entered_otp:
+            raise ValidationError('Phone number and OTP are required.')
+        if not phone_number.isdigit() or len(phone_number) != 11:
+            raise ValidationError('Invalid phone number format.')
+        if not entered_otp.isdigit() or len(entered_otp) != 5:
+            raise ValidationError('Invalid OTP format.')
+
+    def verify_otp(self, phone_number, entered_otp):
+        otp = OtpCode.objects.filter(phone_number=phone_number, code=entered_otp).first()
+        if not otp:
+            raise ValidationError('Invalid OTP.')
+        if otp.expires_at < timezone.now():
+            otp.delete()
+            raise ValidationError('OTP has expired.')
+        otp.delete()
+
+    def get_or_create_user(self, data):
+        phone_number = data.get('phone_number')
+        user = User.objects.filter(phone_number=phone_number).first()
+        if user:
+            return user
+
+        user_serializer = UserRegisterSerializer(data=data)
+        if user_serializer.is_valid():
+            return user_serializer.save()
         else:
-            # print(f"Can't find the {entered_otp=} with {phone_number=}")
-            return Response({'success': False, 'message': 'Invalid OTP'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError(user_serializer.errors)
 
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    """
-    Method: Get
-        The Current Registred user information
-    Input:
-        -
-    Return:
-        - The Current Registred user information
-    """
     def get(self, request):
+        """
+        Method: Get \n
+            The Current Registred user information \n
+        Input: \n
+            - \n
+        Return: \n
+            - The Current Registred user information \n
+        """
         user = request.user
         serializer = UserRegisterSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    """
-    Method: POST
-        Use to set or update the password for the authenticated user.
-    Input:
-        - password: New password
-        - confirm_password: Confirmation of the new password
-    Return:
-        - success: True if the password was updated successfully
-        - message: Informational message
-    """
+
     def post(self, request, *args, **kwargs):
+        """
+        Method: POST \n
+            Use to set or update the password for the authenticated user. \n
+        Input: \n
+            - password: New password \n
+            - confirm_password: Confirmation of the new password \n
+        Return: \n
+            - success: True if the password was updated successfully \n
+            - message: Informational message \n
+        """
         user = request.user
         data = request.data
         user_serializer = UserRegisterSerializer(instance=user, data=data, partial=True)
@@ -172,28 +203,28 @@ class UserInfoView(APIView):
 class AddressView(APIView):
     permission_classes = [IsAuthenticated]
 
-    """
-    Method: GET
-
-    Input:
-        -
-    Return:
-        - Retrieve all addresses of the authenticated user
-    """
     def get(self, request, *args, **kwargs):
+        """
+        Method: GET \n
+          - Retrieve all addresses of the authenticated user\n
+        Input: \n
+            - \n
+        Return: \n
+            -  \n
+        """
         addresses = Address.objects.filter(user=request.user)
         serializer = AddressSerializer(addresses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    """
-    Method: POST
-        Add new address for user
-    Input:
-        - Address information: 'is_default', 'country', 'state', 'city', 'street', 'postal_code'
-    Return:
-        - Created Address information. Or Bad Request for invalid data
-    """
     def post(self, request, *args, **kwargs):
+        """
+        Method: POST \n
+            Add new address for user \n
+        Input: \n
+            - Address information: 'is_default', 'country', 'state', 'city', 'street', 'postal_code' \n
+        Return: \n
+            - Created Address information. Or Bad Request for invalid data \n
+        """
         data = request.data.dict()
         data['user'] = request.user.id
         serializer = AddressSerializer(data=data)
