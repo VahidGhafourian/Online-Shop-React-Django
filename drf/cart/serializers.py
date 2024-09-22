@@ -4,6 +4,7 @@ from payments.models import Discount
 from django.utils import timezone
 from django.db import models
 from payments.serializers import CouponSerializer
+from products.models import ProductVariant
 
 class CartItemSerializer(serializers.ModelSerializer):
     subtotal = serializers.IntegerField(min_value=0, read_only=True)
@@ -45,16 +46,25 @@ class CartItemSerializer(serializers.ModelSerializer):
 
         return original_price
 
-    def validate(self, data):
-        product_variant = data['product_variant']
-        quantity = data['quantity']
+    def validate_product_variant(self, product_variant):
+        if product_variant.product.available is False:
+            raise serializers.ValidationError("Requested product is not available at the moment.")
+        return product_variant
+
+    def validate_quantity(self, quantity):
+        instance = self.instance
+        if instance:
+            product_variant = instance.product_variant
+        else:
+            product_variant = self.initial_data.get('product_variant')
+            try:
+                product_variant = ProductVariant.objects.get(pk=product_variant)
+            except ProductVariant.DoesNotExist:
+                raise serializers.ValidationError("Invalid product variant.")
 
         if quantity > product_variant.inventory.quantity:
             raise serializers.ValidationError("Requested quantity exceeds available stock.")
-        if product_variant.product.available is False:
-            raise serializers.ValidationError("Requested product is not available at the moment.")
-
-        return data
+        return quantity
 
     def create(self, validated_data):
         validated_data['price'] = validated_data['product_variant'].price

@@ -28,7 +28,8 @@ class DiscountFactory(DjangoModelFactory):
     description = factory.Faker('sentence')
     discount_percent = factory.Faker('random_int', min=1, max=80)
     valid_from = factory.Faker('date_time_this_year', before_now=True, after_now=False, tzinfo=tz.utc)
-    valid_to = factory.LazyAttribute(lambda o: o.valid_from + timezone.timedelta(days=fake.random_int(min=1, max=90)))
+    valid_to = factory.LazyAttribute(lambda o: timezone.now() + timezone.timedelta(days=1))
+    is_active = True
 
     @factory.post_generation
     def applicable_to(self, create, extracted, **kwargs):
@@ -63,10 +64,10 @@ class CouponFactory(DjangoModelFactory):
     code = factory.Sequence(lambda n: f'COUPON{n:04d}')
     discount_percent = factory.Faker('random_int', min=1, max=80)
     valid_from = factory.Faker('date_time_this_year', before_now=True, after_now=False, tzinfo=tz.utc)
-    valid_to = factory.LazyAttribute(lambda o: o.valid_from + timezone.timedelta(days=fake.random_int(min=1, max=90)))
-    active = factory.Faker('boolean')
+    valid_to = factory.LazyAttribute(lambda o: timezone.now() + timezone.timedelta(days=5))
+    active = True
     usage_limit = factory.Faker('random_int', min=1, max=100)
-    usage_count = factory.LazyAttribute(lambda o: fake.random_int(min=0, max=o.usage_limit))
+    usage_count = factory.LazyAttribute(lambda o: fake.random_int(min=0, max=o.usage_limit-10))
 
     @factory.post_generation
     def applicable_to(self, create, extracted, **kwargs):

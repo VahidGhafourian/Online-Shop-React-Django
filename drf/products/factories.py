@@ -19,15 +19,6 @@ class CategoryFactory(DjangoModelFactory):
     product_attributes_schema = factory.LazyFunction(lambda: {'color': 'string', 'size': 'string'})
     variant_attributes_schema = factory.LazyFunction(lambda: {'color': 'string', 'size': 'string'})
 
-    @factory.post_generation
-    def parent(self, create, extracted, **kwargs):
-        if not create:
-            return
-        if extracted:
-            self.parent = extracted
-        elif fake.boolean(chance_of_getting_true=30):
-            self.parent = CategoryFactory()
-
 
 class ProductFactory(DjangoModelFactory):
     class Meta:
@@ -52,9 +43,18 @@ class ProductVariantFactory(DjangoModelFactory):
     price = factory.Faker('random_int', min=1000, max=100000)  # Price in cents
     attributes = factory.LazyFunction(lambda: {'color': fake.color_name(), 'size': fake.random_element(['S', 'M', 'L', 'XL'])})
 
+    class Params:
+        quantity = None
+
     @factory.post_generation
     def create_inventory(self, create, extracted, **kwargs):
-        if create:
+        if not create:
+            return
+
+        quantity = kwargs.pop('quantity', None)
+        if quantity is not None:
+            InventoryFactory(product_variant=self, quantity=quantity)
+        else:
             InventoryFactory(product_variant=self)
 
 class ProductImageFactory(DjangoModelFactory):
@@ -98,3 +98,13 @@ class InventoryFactory(DjangoModelFactory):
 
     product_variant = factory.SubFactory(ProductVariantFactory)
     quantity = factory.Faker('random_int', min=100, max=500)
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        # If quantity is provided, use it; otherwise, use the Faker-generated quantity
+        quantity = kwargs.pop('quantity', None)
+        obj = super()._create(model_class, *args, **kwargs)
+        if quantity is not None:
+            obj.quantity = quantity
+            obj.save()
+        return obj

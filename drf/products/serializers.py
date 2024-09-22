@@ -11,7 +11,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = [
-            'id', 'parent', 'title', 'slug',
+            'id', 'parent', 'title', 'slug', 'created_at', 'updated_at',
             'product_attributes_schema', 'variant_attributes_schema'
         ]
 
@@ -58,7 +58,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'category', 'title', 'slug', 'description', 'available',
-            'attributes','images', 'variants', 'lowest_price', 'average_rating'
+            'attributes','images', 'variants', 'lowest_price', 'average_rating', 'created_at', 'updated_at'
         ]
 
     def get_lowest_price(self, obj):
