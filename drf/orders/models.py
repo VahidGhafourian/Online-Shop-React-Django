@@ -1,6 +1,7 @@
 from django.db import models
 from account.models import User, Address
 from products.models import ProductVariant
+from django.core.validators import MinValueValidator
 
 class Order(models.Model):
     class Status(models.TextChoices):
@@ -27,8 +28,8 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
-    price = models.PositiveIntegerField()
-    quantity = models.PositiveIntegerField(default=1)
+    price = models.PositiveIntegerField(validators=[MinValueValidator(1000)])
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

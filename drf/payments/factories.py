@@ -66,7 +66,7 @@ class CouponFactory(DjangoModelFactory):
     valid_from = factory.Faker('date_time_this_year', before_now=True, after_now=False, tzinfo=tz.utc)
     valid_to = factory.LazyAttribute(lambda o: timezone.now() + timezone.timedelta(days=5))
     active = True
-    usage_limit = factory.Faker('random_int', min=1, max=100)
+    usage_limit = factory.Faker('random_int', min=11, max=100)
     usage_count = factory.LazyAttribute(lambda o: fake.random_int(min=0, max=o.usage_limit-10))
 
     @factory.post_generation

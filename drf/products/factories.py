@@ -43,9 +43,6 @@ class ProductVariantFactory(DjangoModelFactory):
     price = factory.Faker('random_int', min=1000, max=100000)  # Price in cents
     attributes = factory.LazyFunction(lambda: {'color': fake.color_name(), 'size': fake.random_element(['S', 'M', 'L', 'XL'])})
 
-    class Params:
-        quantity = None
-
     @factory.post_generation
     def create_inventory(self, create, extracted, **kwargs):
         if not create:

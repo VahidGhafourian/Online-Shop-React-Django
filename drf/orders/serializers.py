@@ -18,9 +18,9 @@ class OrderItemSerializer(serializers.ModelSerializer):
         return value
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, read_only=True)
+    items = OrderItemSerializer(many=True, required=False)
     total_price = serializers.SerializerMethodField()
-    user = serializers.ReadOnlyField(source='user.phone_number')
+    # user = serializers.StringRelatedField(source='user.phone_number')
     # Adding format to the datetime fields
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
     updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)

@@ -41,7 +41,7 @@ class CartItemSerializerTest(TestCase):
     def test_validation_quantity_exceeds_stock(self):
         user = UserFactory()
         cart = Cart.objects.create(user=user)
-        product_variant = ProductVariantFactory(quantity=1)
+        product_variant = ProductVariantFactory(create_inventory__quantity=1)
         data = {
             'cart': cart.id,
             'product_variant': product_variant.id,

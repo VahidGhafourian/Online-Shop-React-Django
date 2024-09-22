@@ -25,19 +25,29 @@ class OrderFactory(DjangoModelFactory):
         if not create:
             return
 
-        if extracted:
-            for item in extracted:
-                self.items.add(item)
-        else:
-            # Create 1 to 5 OrderItems by default
-            OrderItemFactory.create_batch(fake.random_int(min=1, max=5), order=self)
+        have_items = kwargs.pop('have_items', True)
+        size = kwargs.pop('size', None)
+        if have_items:
+            if extracted:
+                for item in extracted:
+                    self.items.add(item)
+            else:
+                num_items = size if size is not None else fake.random_int(min=1, max=5)
+                OrderItemFactory.create_batch(num_items, order=self)
 
 class OrderItemFactory(DjangoModelFactory):
     class Meta:
         model = OrderItem
 
-    order = factory.SubFactory(OrderFactory)
+    order = factory.SubFactory(OrderFactory, items__have_items=False)
     product_variant = factory.SubFactory(ProductVariantFactory)
     price = factory.Faker('random_int', min=1000, max=100000)
     quantity = factory.Faker('random_int', min=1, max=10)
     added_at = factory.LazyFunction(timezone.now)
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.full_clean()
+        obj.save()
+        return obj

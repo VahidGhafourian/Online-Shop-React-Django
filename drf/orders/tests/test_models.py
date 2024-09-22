@@ -1,31 +1,54 @@
 from django.test import TestCase
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 from orders.models import Order, OrderItem
-from account.factories import UserFactory
-from products.factories import ProductVariantFactory
+from orders.factories import OrderFactory, OrderItemFactory, UserFactory, AddressFactory, ProductVariantFactory
 
-class OrderModelTests(TestCase):
+class OrderModelTest(TestCase):
     def setUp(self):
         self.user = UserFactory()
+        self.address = AddressFactory(user=self.user)
+        self.order = OrderFactory(user=self.user, shipping_address=self.address, status=Order.Status.PENDING, items__have_items=False)
 
-    def test_create_order(self):
-        order = Order.objects.create(user=self.user, completed=False)
-        self.assertEqual(str(order), f'Order {order.id} by user {self.user}')
-        self.assertFalse(order.completed)
+    def test_order_creation(self):
+        self.assertTrue(isinstance(self.order, Order))
+        self.assertEqual(self.order.__str__(), f'Order {self.order.id} by user {str(self.order.user)}')
+
+    def test_order_status(self):
+        self.assertEqual(self.order.status, Order.Status.PENDING)
+        self.order.status = Order.Status.PAID
+        self.order.save()
+        self.assertEqual(self.order.status, Order.Status.PAID)
+
+    def test_order_dates(self):
+        self.assertTrue(isinstance(self.order.created_at, timezone.datetime))
+        self.assertTrue(isinstance(self.order.updated_at, timezone.datetime))
 
     def test_get_total_price(self):
-        order = Order.objects.create(user=self.user)
-        product1 = ProductVariantFactory(price=100)
-        product2 = ProductVariantFactory(price=200)
-        OrderItem.objects.create(order=order, product_variant=product1, price=100, quantity=2)
-        OrderItem.objects.create(order=order, product_variant=product2, price=200, quantity=1)
-        self.assertEqual(order.get_total_price(), 400)
+        item1 = OrderItemFactory(order=self.order, price=10000, quantity=2)
+        item2 = OrderItemFactory(order=self.order, price=5000, quantity=1)
+        self.assertEqual(self.order.get_total_price(), 25000)
 
-class OrderItemModelTests(TestCase):
+class OrderItemModelTest(TestCase):
     def setUp(self):
-        self.order = Order.objects.create(user=UserFactory())
+        self.order = OrderFactory()
+        self.product_variant = ProductVariantFactory()
+        self.order_item = OrderItemFactory(order=self.order, product_variant=self.product_variant, price=1000, quantity=2)
 
-    def test_create_order_item(self):
-        product = ProductVariantFactory(price=150)
-        order_item = OrderItem.objects.create(order=self.order, product_variant=product, price=150, quantity=3)
-        self.assertEqual(str(order_item), str(order_item.id))
-        self.assertEqual(order_item.get_cost(), 450)
+    def test_order_item_creation(self):
+        self.assertTrue(isinstance(self.order_item, OrderItem))
+        self.assertEqual(self.order_item.__str__(), str(self.order_item.id))
+
+    def test_get_cost(self):
+        self.assertEqual(self.order_item.get_cost(), 2000)
+
+    def test_negative_price(self):
+        with self.assertRaises(ValidationError):
+            OrderItemFactory(order=self.order, product_variant=self.product_variant, price=-100)
+
+    def test_zero_quantity(self):
+        with self.assertRaises(ValidationError):
+            OrderItemFactory(order=self.order, product_variant=self.product_variant, quantity=0)
+
+    def test_order_item_added_at(self):
+        self.assertTrue(isinstance(self.order_item.added_at, timezone.datetime))

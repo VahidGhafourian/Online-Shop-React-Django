@@ -13,5 +13,5 @@ urlpatterns = [
     path('admin/', AdminOrderListView.as_view(), name='all-order-list'),
     path('<int:pk>/', AdminOrderDetailView.as_view(), name='order-detail'),
 
-    path('order-refound/admin/', AdminRefundOrderView.as_view(), name='refound-order'),
+    path('order-refound/admin/<int:pk>/', AdminRefundOrderView.as_view(), name='refound-order'),
 ]
