@@ -11,7 +11,7 @@ class Category(models.Model):
                                related_name='children',
                                null=True, blank=True)
     title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     product_attributes_schema = models.JSONField(default=dict, null=True, blank=True)
@@ -35,7 +35,7 @@ class Product(models.Model):
                                  null=True,
                                  limit_choices_to={'children__isnull': True},)
     title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     # image = models.ImageField(null=True, blank=True)
     description = RichTextField(null=True, blank=True)
     available = models.BooleanField(default=True)
@@ -88,7 +88,7 @@ class ProductImage(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True, blank=True)
     products = models.ManyToManyField(Product, related_name='tags', blank=True)
 
     def __str__(self):
@@ -98,10 +98,10 @@ class Tag(models.Model):
 class Review(models.Model):
     product = models.ForeignKey(Product,on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    rating = models.PositiveSmallIntegerField(
+    rating = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
-    )  # Assuming a 1-5 rating system
-    comment = models.TextField(blank=True, null=True)
+    )  # 1-5 rating system
+    comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     approval = models.BooleanField(default=False)

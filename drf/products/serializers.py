@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework import serializers
 from .models import Category, Product, ProductVariant, ProductImage, Tag, Review, Inventory
 import jsonschema
+from django.utils.text import slugify
 
 class CategorySerializer(serializers.ModelSerializer):
         # Adding format to the datetime fields
@@ -28,6 +29,11 @@ class CategorySerializer(serializers.ModelSerializer):
         except jsonschema.exceptions.ValidationError:
             raise serializers.ValidationError("Invalid JSON schema for variant attributes")
         return value
+
+    def create(self, validated_data):
+        if 'slug' not in validated_data or not validated_data['slug']:
+            validated_data['slug'] = slugify(validated_data['title'])
+        return super().create(validated_data)
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -90,23 +96,31 @@ class ProductSerializer(serializers.ModelSerializer):
         return value
     # TODO: Add serializer for product list and product detail
 
+    def create(self, validated_data):
+        if 'slug' not in validated_data or not validated_data['slug']:
+            validated_data['slug'] = slugify(validated_data['title'])
+        return super().create(validated_data)
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ['id', 'name', 'slug', 'products']
 
+    def create(self, validated_data):
+        if 'slug' not in validated_data or not validated_data['slug']:
+            validated_data['slug'] = slugify(validated_data['name'])
+        return super().create(validated_data)
 
 class ReviewSerializer(serializers.ModelSerializer):
-    product = serializers.StringRelatedField(source='product.id')
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
     user = serializers.StringRelatedField(read_only=True)
 
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
-    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
 
     class Meta:
         model = Review
-        fields = ['id', 'product', 'user', 'rating', 'comment', 'created_at', 'updated_at']
+        fields = ['id', 'product', 'user', 'rating', 'comment', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at']
 
 
 class InventorySerializer(serializers.ModelSerializer):

@@ -45,7 +45,8 @@ class ProductVariantFactory(DjangoModelFactory):
 
     @factory.post_generation
     def create_inventory(self, create, extracted, **kwargs):
-        if not create:
+        create_inventory_flag = kwargs.pop('create_inventory', True)
+        if not create or not create_inventory_flag:
             return
 
         quantity = kwargs.pop('quantity', None)
@@ -66,7 +67,7 @@ class TagFactory(DjangoModelFactory):
     class Meta:
         model = Tag
 
-    name = factory.Sequence(lambda n: f"{factory.Faker('word').generate()} {n}")
+    name = factory.Sequence(lambda n: f"{factory.Faker('word')} {n}")
     slug = factory.LazyAttribute(lambda obj: slugify(obj.name))
 
     @factory.post_generation
