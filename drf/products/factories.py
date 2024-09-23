@@ -12,7 +12,7 @@ class CategoryFactory(DjangoModelFactory):
         model = Category
 
     parent = None
-    title = factory.Faker('word')
+    title = factory.Sequence(lambda n: f"{factory.Faker('word')} {n}")
     slug = factory.LazyAttribute(lambda obj: slugify(obj.title))
     created_at = factory.LazyFunction(timezone.now)
     updated_at = factory.LazyFunction(timezone.now)
@@ -25,7 +25,7 @@ class ProductFactory(DjangoModelFactory):
         model = Product
 
     category = factory.SubFactory(CategoryFactory)
-    title = factory.Faker('sentence', nb_words=3)
+    title = factory.Sequence(lambda n: f"{factory.Faker('word')} {n}")
     slug = factory.LazyAttribute(lambda obj: slugify(obj.title))
     description = factory.Faker('paragraph')
     available = True # factory.Faker('boolean', chance_of_getting_true=80)
@@ -66,7 +66,7 @@ class TagFactory(DjangoModelFactory):
     class Meta:
         model = Tag
 
-    name = factory.Faker('word')
+    name = factory.Sequence(lambda n: f"{factory.Faker('word').generate()} {n}")
     slug = factory.LazyAttribute(lambda obj: slugify(obj.name))
 
     @factory.post_generation
