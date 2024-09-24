@@ -22,6 +22,7 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from django.core.paginator import Paginator
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
+from django.db.models import Q, Min, Max
 
 
 class ProductListView(APIView):
@@ -145,6 +146,53 @@ class ProductListView(APIView):
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class ProductSearchFilterView(APIView):
+    """
+    Method: GET
+      - Searches and filters products based on various criteria
+
+    Input:
+      - search (str): Search query for product title or description
+      - category (str): Slug of the category to filter by
+      - tags (list): List of tag slugs to filter by
+      - min_price (float): Minimum price for filtering
+      - max_price (float): Maximum price for filtering
+
+    Return:
+      - List of serialized Product objects matching the search and filter criteria
+      - Status code: 200 OK
+    """
+    def get(self, request):
+        queryset = Product.objects.all()
+
+        search_query = request.query_params.get('search', None)
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) | Q(description__icontains=search_query)
+            )
+
+        category = request.query_params.get('category', None)
+        if category:
+            queryset = queryset.filter(category__slug=category)
+
+        tags = request.query_params.getlist('tags', None)
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+
+        min_price = request.query_params.get('min_price', None)
+        max_price = request.query_params.get('max_price', None)
+        if min_price or max_price:
+            queryset = queryset.annotate(
+                min_variant_price=Min('variants__price'),
+                max_variant_price=Max('variants__price')
+            )
+            if min_price:
+                queryset = queryset.filter(max_variant_price__gte=min_price)
+            if max_price:
+                queryset = queryset.filter(min_variant_price__lte=max_price)
+
+        serializer = ProductSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class ProductVariantListView(APIView):
     def get_permissions(self):

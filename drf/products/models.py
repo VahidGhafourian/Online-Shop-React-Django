@@ -57,7 +57,6 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('home:product_detail', args=[self.slug, ])
 
-
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product,
                                 on_delete=models.CASCADE,
@@ -85,7 +84,6 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"Image of {self.product.title}"
 
-
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=50, unique=True, blank=True)
@@ -93,7 +91,6 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Review(models.Model):
     product = models.ForeignKey(Product,on_delete=models.CASCADE, related_name='reviews')
@@ -111,7 +108,6 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review of {self.product.title} by {self.user.phone_number}"
-
 
 class Inventory(models.Model):
     product_variant = models.OneToOneField(ProductVariant, on_delete=models.CASCADE, related_name='inventory')

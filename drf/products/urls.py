@@ -1,17 +1,18 @@
 from django.urls import path
 from .views import (
-  CategoryListView,
-  CategoryDetailView,
-  ProductListView,
-  ProductListView,
-  ProductVariantListView,
-  ProductVariantDetailView,
-  ProductImageListView,
-  ProductImageDetailView,
-  TagListView,
-  TagDetailView,
-  InventoryView,
-  ReviewView,
+    CategoryListView,
+    CategoryDetailView,
+    ProductListView,
+    ProductListView,
+    ProductVariantListView,
+    ProductVariantDetailView,
+    ProductImageListView,
+    ProductImageDetailView,
+    TagListView,
+    TagDetailView,
+    InventoryView,
+    ReviewView,
+    ProductSearchFilterView,
   )
 
 app_name = 'products'
@@ -47,4 +48,7 @@ urlpatterns = [
 
     path('review/<int:product_id>/', ReviewView.as_view(),
          name='review-list'),
+
+    path('products/search/', ProductSearchFilterView.as_view(),
+         name='product-search-filter'),
 ]
