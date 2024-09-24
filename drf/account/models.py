@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from .managers import UserManager
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=13, unique=True)
@@ -15,6 +16,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email_confirmd = models.EmailField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
+    last_notification_check = models.DateTimeField(default=timezone.now)
     objects = UserManager()
 
     USERNAME_FIELD = 'phone_number'

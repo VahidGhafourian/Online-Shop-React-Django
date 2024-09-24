@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'orders',
     'payments',
     'zarinpal',
+    'notifications',
 ]
 
 MIDDLEWARE = [

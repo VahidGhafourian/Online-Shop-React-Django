@@ -16,12 +16,12 @@ class CartView(APIView):
 
     def get(self, request):
         """
-          Method: GET
-            - Retrieve the cart details.
-          Input:
-            - Authenticated request
-          Return:
-            - ['user', 'items']
+          Method: GET \n
+            - Retrieve the cart details. \n
+          Input: \n
+            - Authenticated request \n
+          Return: \n
+            - ['user', 'items'] \n
         """
         cart = self.get_cart(request)
         serializer = CartSerializer(cart)
@@ -29,12 +29,12 @@ class CartView(APIView):
 
     def post(self, request):
         """
-          Method: POST
-            - Add an item to the cart.
-          Input:
-            - ['product_variant', 'quantity']
-          Return:
-            - ['product_variant', 'quantity']
+          Method: POST \n
+            - Add an item to the cart. \n
+          Input: \n
+            - ['product_variant', 'quantity'] \n
+          Return: \n
+            - ['product_variant', 'quantity'] \n
         """
         cart = self.get_cart(request)
         product_variant_id = request.data.get('product_variant')
@@ -62,12 +62,12 @@ class CartView(APIView):
 
     def put(self, request, item_id):
         """
-          Method: PUT
-            - Update an item's quantity in the cart.
-          Input:
-            - [item_id, 'quantity']
-          Return:
-            - status 200 if its done. otherwise 404.
+          Method: PUT \n
+            - Update an item's quantity in the cart. \n
+          Input: \n
+            - [item_id, 'quantity'] \n
+          Return: \n
+            - status 200 if its done. otherwise 404. \n
         """
         cart_item = get_object_or_404(CartItem, cart__user=request.user, id=item_id)
         serializer = CartItemSerializer(cart_item, data=request.data, partial=True)
@@ -79,8 +79,8 @@ class CartView(APIView):
 
     def delete(self, request, item_id):
         """
-          Method: DELETE
-            - Remove an item from the cart."""
+          Method: DELETE \n
+            - Remove an item from the cart. \n"""
         cart_item = get_object_or_404(CartItem, cart__user=request.user, id=item_id)
         cart_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -90,10 +90,10 @@ class ClearCartView(APIView):
 
     def delete(self, request):
         """
-          Method: DELETE
-            - Clear all items from the cart or remove the applied coupon.
-          Input:
-            action: "clear_items" or "remove_coupon". Default: "clear_items"
+          Method: DELETE \n
+            - Clear all items from the cart or remove the applied coupon. \n
+          Input: \n
+            action: "clear_items" or "remove_coupon". Default: "clear_items" \n
         """
         cart, _ = Cart.objects.get_or_create(user=request.user)
         action = request.query_params.get('action', 'clear_items')
@@ -113,10 +113,10 @@ class ApplyCouponView(APIView):
 
     def post(self, request):
         """
-        Method: POST
-          - Applying coupons to the cart
-        Input:
-          - coupon_code
+        Method: POST \n
+          - Applying coupons to the cart \n
+        Input: \n
+          - coupon_code \n
         """
         coupon_code = request.data.get('coupon_code')
         if not coupon_code:

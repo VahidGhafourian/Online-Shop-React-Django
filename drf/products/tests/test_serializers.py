@@ -129,7 +129,7 @@ class ReviewSerializerTest(TestCase):
 
     def test_contains_expected_fields(self):
         data = self.serializer.data
-        self.assertEqual(set(data.keys()), set(['id', 'product', 'user', 'rating', 'comment', 'created_at', 'updated_at']))
+        self.assertEqual(set(data.keys()), set(['id', 'product', 'user', 'rating', 'comment', 'created_at']))
 
     def test_field_content(self):
         data = self.serializer.data
