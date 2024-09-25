@@ -42,7 +42,7 @@ class ProductSerializerTest(TestCase):
 
     def test_contains_expected_fields(self):
         data = self.serializer.data
-        self.assertEqual(set(data.keys()), set(['id', 'category', 'title', 'slug', 'description', 'available', 'attributes', 'images', 'variants', 'lowest_price', 'average_rating', 'created_at', 'updated_at']))
+        self.assertEqual(set(data.keys()), set(['id', 'category', 'title', 'slug', 'description', 'available', 'attributes', 'images', 'default_image', 'variants', 'lowest_price', 'average_rating', 'created_at', 'updated_at']))
 
     def test_field_content(self):
         data = self.serializer.data

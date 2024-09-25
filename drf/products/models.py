@@ -36,7 +36,6 @@ class Product(models.Model):
                                  limit_choices_to={'children__isnull': True},)
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
-    # image = models.ImageField(null=True, blank=True)
     description = RichTextField(null=True, blank=True)
     available = models.BooleanField(default=True)
     attributes = models.JSONField(default=dict, null=True, blank=True)
@@ -50,7 +49,13 @@ class Product(models.Model):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+        if not self.images.exists():
+            ProductImage.objects.create(product=self, image='product_images/default.png')
 
+    @property
+    def default_image(self):
+        return self.images.first() or ProductImage(image='product_images/default.png')
+    
     def __str__(self):
         return self.title
 

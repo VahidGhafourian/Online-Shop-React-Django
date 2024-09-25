@@ -60,6 +60,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
+    default_image = serializers.SerializerMethodField()
     lowest_price = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     # Adding format to the datetime fields
@@ -69,10 +70,13 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'category', 'title', 'slug', 'description', 'available',
-            'attributes','images', 'variants', 'lowest_price', 'average_rating', 'created_at', 'updated_at'
+            'id', 'category', 'title', 'slug', 'description', 'available', 'attributes',
+            'images', 'default_image', 'variants', 'lowest_price', 'average_rating', 'created_at', 'updated_at'
         ]
 
+    def get_default_image(self, obj):
+        return ProductImageSerializer(obj.default_image).data
+    
     def get_lowest_price(self, obj):
         variants = obj.variants.all()
         if variants:
