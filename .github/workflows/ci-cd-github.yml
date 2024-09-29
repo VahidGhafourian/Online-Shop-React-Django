@@ -74,11 +74,7 @@ jobs:
           DB_PORT: 5433
         run: |
           cd drf
-          python manage.py test
-
-      # - name: Stop Postgres Service
-      #   run: |
-      #     docker stop $(docker ps -q --filter ancestor=postgres:12)
+          python manage.py test --settings=OnlineShop.test_settings
 
   deploy:
     environment: SSH_PRIVATE_KEY
