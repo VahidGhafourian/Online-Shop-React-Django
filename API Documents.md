@@ -140,6 +140,7 @@ The headers specified above should be used for all API endpoints documented in t
 - **URL**: `/api/account/user-info/`
 - **Method**: `GET`
 - **Description**: Get user information 
+- **Authentication**: Required
 - **Success Response**:
   - **Code**: 200
   - **Content**: 
@@ -164,6 +165,7 @@ The headers specified above should be used for all API endpoints documented in t
 - **URL**: `/api/account/user-info/`
 - **Method**: `POST`
 - **Description**: Update User information like password
+- **Authentication**: Required
 - **Data Params**:
   ```json
   {
@@ -190,6 +192,7 @@ The headers specified above should be used for all API endpoints documented in t
 - **URL**: `/api/account/add-address/`
 - **Method**: `POST`
 - **Description**: Add a new address for the user
+- **Authentication**: Required
 - **Data Params**:
   ```json
   {
@@ -223,6 +226,7 @@ The headers specified above should be used for all API endpoints documented in t
 - **URL**: `/api/account/user-addresses/`
 - **Method**: `GET`
 - **Description**: Get all addresses for the user
+- **Authentication**: Required
 - **Success Response**:
   - **Code**: 200
   - **Content**:
@@ -319,8 +323,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/products/`
 - **Method**: `POST`
-- **Description**: Create a new product. Only accessible to admin users.
-  
+- **Description**: Create a new product.
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -371,8 +375,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/products/<int:pk>/`
 - **Method**: `PUT`
-- **Description**: Update an existing product by its ID. Only accessible to admin users.
-  
+- **Description**: Update an existing product by its ID.
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -410,8 +414,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/products/<int:pk>/`
 - **Method**: `DELETE`
-- **Description**: Delete a product by its ID. Only accessible to admin users.
-  
+- **Description**: Delete a product by its ID.
+- **Authentication**: Admin only
 - **Success Response**:
   - **Code**: 204
   - **Content**: `{}`
@@ -474,7 +478,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/product-variants/`
 - **Method**: `POST`
-- **Description**: Create a new product variant (Admin only)
+- **Description**: Create a new product variant
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -520,7 +525,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/product-variants/<int:pk>/`
 - **Method**: `PUT`
-- **Description**: Update a product variant (Admin only)
+- **Description**: Update a product variant
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -546,12 +552,17 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/product-variants/<int:pk>/`
 - **Method**: `DELETE`
-- **Description**: Delete a product variant (Admin only)
+- **Description**: Delete a product variant
+- **Authentication**: Admin only
 - **Success Response**:
   - **Code**: 204
   - **Content**: No content
 
 ---
+
+
+### Category Management
+
 #### List Categories
 
 - **URL**: `/api/categories/`
@@ -581,7 +592,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/categories/`
 - **Method**: `POST`
-- **Description**: Create a new category (Admin only)
+- **Description**: Create a new category
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -634,7 +646,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/categories/<int:pk>/`
 - **Method**: `PUT`
-- **Description**: Update a category (Admin only)
+- **Description**: Update a category
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -663,11 +676,14 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/categories/<int:pk>/`
 - **Method**: `DELETE`
-- **Description**: Delete a category (Admin only)
+- **Description**: Delete a category
+- **Authentication**: Admin only
 - **Success Response**:
   - **Code**: 204
   - **Content**: No content
 ---
+
+### Inventory Management
 
 #### Get Inventory
 
@@ -690,7 +706,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/inventory/<int:product_variant_id>/`
 - **Method**: `POST`
-- **Description**: Create inventory for a product variant (Admin only)
+- **Description**: Create inventory for a product variant
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -713,7 +730,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/inventory/<int:product_variant_id>/`
 - **Method**: `PUT`
-- **Description**: Update inventory for a product variant (Admin only)
+- **Description**: Update inventory for a product variant 
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -736,12 +754,14 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/inventory/<int:product_variant_id>/`
 - **Method**: `DELETE`
-- **Description**: Delete inventory for a product variant (Admin only)
+- **Description**: Delete inventory for a product variant 
+- **Authentication**: Admin only
 - **Success Response**:
   - **Code**: 204
   - **Content**: No content
 ---
 
+### Product Review Management
 #### Get Product Reviews
 
 - **URL**: `/api/review/<int:product_id>/`
@@ -769,7 +789,8 @@ The headers specified above should be used for all API endpoints documented in t
 
 - **URL**: `/api/review/<int:product_id>/`
 - **Method**: `POST`
-- **Description**: Create a new review for a product (Admin only)
+- **Description**: Create a new review for a product 
+- **Authentication**: Admin only
 - **Data Params**:
   ```json
   {
@@ -791,6 +812,9 @@ The headers specified above should be used for all API endpoints documented in t
     }
     ```
 ---
+
+### Cart Management
+
 #### Get Cart
 
 - **URL**: `/api/cart/`
@@ -952,6 +976,8 @@ The headers specified above should be used for all API endpoints documented in t
     ```
 
 ---
+
+### Notifications
 #### List New Notifications
 - **URL**: `/api/notifications/`
 - **Method**: `GET`
@@ -1033,13 +1059,14 @@ The headers specified above should be used for all API endpoints documented in t
     }
     ```
 ---
+
+### Order Management
 #### User Order List
 
 - **URL**: `/api/orders/`
 - **Method**: `GET`
 - **Description**: Get all orders for the authenticated user
 - **Authentication**: Required
-- **Permissions**: IsAuthenticated
 - **Success Response**:
   - **Code**: 200
   - **Content**: 
@@ -1235,6 +1262,8 @@ The headers specified above should be used for all API endpoints documented in t
     }
     ```
 ---
+
+### Payment Management
 #### Checkout
 
 - **URL**: `/api/payments/checkout/`
