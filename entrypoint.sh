@@ -17,4 +17,7 @@ python manage.py collectstatic --no-input
 echo 'Create superuser...'
 python manage.py createsu
 
+echo 'Runnig server...'
+python manage.py runserver 0.0.0.0:8000
+
 exec "$@"

@@ -1,45 +1,43 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from account.serializers import UserRegisterSerializer, OtpCodeSerializer, AddressSerializer
+from account.serializers import UserSerializer, OtpCodeSerializer, AddressSerializer
 from account.models import OtpCode, Address
 
 User = get_user_model()
 
-class UserRegisterSerializerTest(TestCase):
+class UserSerializerTest(TestCase):
     def setUp(self):
         self.user_data = {
             'phone_number': '12345678901',
             'password': 'testpassword',
-            'confirm_password': 'testpassword',
             'email': 'test@example.com',
             'first_name': 'John',
             'last_name': 'Doe'
         }
+        self.user = User.objects.create(**self.user_data)
 
     def test_user_creation(self):
-        serializer = UserRegisterSerializer(data=self.user_data)
-        self.assertTrue(serializer.is_valid())
-        user = serializer.save()
+        serializer = UserSerializer(instance=self.user)
         self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(user.phone_number, '12345678901')
-        self.assertEqual(user.email, 'test@example.com')
+        self.assertEqual(self.user.phone_number, '12345678901')
+        self.assertEqual(self.user.email, 'test@example.com')
 
     def test_password_mismatch(self):
         self.user_data['confirm_password'] = 'wrongpassword'
-        serializer = UserRegisterSerializer(data=self.user_data)
+        serializer = UserSerializer(data=self.user_data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('passwords must mach', str(serializer.errors))
 
     def test_email_validation(self):
         self.user_data['email'] = 'admin@example.com'
-        serializer = UserRegisterSerializer(data=self.user_data)
+        serializer = UserSerializer(data=self.user_data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('admin cant be in admin', str(serializer.errors))
 
     def test_user_update(self):
-        user = User.objects.create_user(phone_number='12345678901', password='oldpassword')
+        user = User.objects.create_user(phone_number='12345678902', password='oldpassword')
         update_data = {'first_name': 'Jane', 'password': 'newpassword'}
-        serializer = UserRegisterSerializer(user, data=update_data, partial=True)
+        serializer = UserSerializer(user, data=update_data, partial=True)
         self.assertTrue(serializer.is_valid())
         updated_user = serializer.save()
         self.assertEqual(updated_user.first_name, 'Jane')

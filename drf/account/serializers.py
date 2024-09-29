@@ -9,17 +9,25 @@ def clean_email(value):
         raise serializers.ValidationError('admin cant be in admin')
 
 
-class UserRegisterSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True, required=False)
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ["password", "confirm_password", "last_login", "first_name", "last_name", "is_active", "is_admin",
+                  "email_confirmd", "date_joined", "date_updated", "email", "phone_number"]
 
         extra_kwargs = {
             'password': {'write_only': True},
-            'email': {'validators': (clean_email,)}
+            'email': {'validators': (clean_email,)},
+            'is_admin': {'read_only': True},
+            'is_active': {'read_only': True},
+            'last_login': {'read_only': True},
+            'date_joined': {'read_only': True},
+            'phone_number': {'read_only': True},
+            'date_updated': {'read_only': True},
+            'email_confirmd': {'read_only': True},
         }
 
     def create(self, validated_data):

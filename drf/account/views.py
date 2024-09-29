@@ -2,7 +2,7 @@ from utils import send_otp_code
 from .models import OtpCode, User, Address
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
-from .serializers import UserRegisterSerializer, OtpCodeSerializer, AddressSerializer
+from .serializers import UserSerializer, OtpCodeSerializer, AddressSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from utils import generate_otp, send_otp_code
 from django.utils import timezone
 
-
+# TODO: Fix bugs in add new address with default=True.
 class UserCheckLoginPhone(APIView):
     """
         Method: POST \n
@@ -110,6 +110,8 @@ class VerifyOTP(APIView):
             self.validate_input(phone_number, entered_otp)
             self.verify_otp(phone_number, entered_otp)
             user = self.get_or_create_user(request.data)
+            user.last_login = timezone.now()
+            user.save()
 
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -142,16 +144,8 @@ class VerifyOTP(APIView):
         otp.delete()
 
     def get_or_create_user(self, data):
-        phone_number = data.get('phone_number')
-        user = User.objects.filter(phone_number=phone_number).first()
-        if user:
-            return user
-
-        user_serializer = UserRegisterSerializer(data=data)
-        if user_serializer.is_valid():
-            return user_serializer.save()
-        else:
-            raise ValidationError(user_serializer.errors)
+        user, _ = User.objects.get_or_create(phone_number=data.get('phone_number'))
+        return user
 
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
@@ -166,7 +160,7 @@ class UserInfoView(APIView):
             - The Current Registred user information \n
         """
         user = request.user
-        serializer = UserRegisterSerializer(user)
+        serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
@@ -182,7 +176,7 @@ class UserInfoView(APIView):
         """
         user = request.user
         data = request.data
-        user_serializer = UserRegisterSerializer(instance=user, data=data, partial=True)
+        user_serializer = UserSerializer(instance=user, data=data, partial=True)
 
         if user_serializer.is_valid():
             # Save the user with the new password
@@ -190,13 +184,13 @@ class UserInfoView(APIView):
 
             return Response({
                 'success': True,
-                'message': 'Password updated successfully'
+                'message': 'User updated successfully'
             }, status=status.HTTP_200_OK)
         else:
             # Return validation errors
             return Response({
                 'success': False,
-                'message': 'Password update failed',
+                'message': 'User update failed',
                 'errors': user_serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -225,7 +219,7 @@ class AddressView(APIView):
         Return: \n
             - Created Address information. Or Bad Request for invalid data \n
         """
-        data = request.data.dict()
+        data = request.data.copy()
         data['user'] = request.user.id
         serializer = AddressSerializer(data=data)
         if serializer.is_valid():

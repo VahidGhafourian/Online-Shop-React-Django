@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11.4-slim-bullseye
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN apt-get update -y && \
     python3-dev \
     netcat-traditional && \
     pip install --upgrade pip && \
-    pip install --no-cache-dir -r /app/requirements.txt&& \
+    pip install --no-cache-dir -r /app/requirements.txt && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
