@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', 'django-insecure-iw1xh*s(69_$p@=3lbb4$3g)q##!ojx=334ezizovjz2n*^s38m')
 MERCHANT = config('Zarinpal_MERCHANT', default='0000')
 SANDBOX = config('SANDBOX', default=False, cast=bool)
 # SECURITY WARNING: don't run with debug turned on in production!
