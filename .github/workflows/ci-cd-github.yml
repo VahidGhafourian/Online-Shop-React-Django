@@ -39,21 +39,6 @@ jobs:
       matrix:
         python-version: [3.11]
 
-    # services:
-      # db:
-      #   image: postgres:12
-      #   env:
-      #     POSTGRES_DB: online_shop
-      #     POSTGRES_USER: postgres
-      #     POSTGRES_PASSWORD: postgres
-      #   ports:
-      #     - 5433:5432
-      #   options: >-
-      #     --health-cmd "pg_isready -U django"
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -101,4 +86,4 @@ jobs:
             cd program/$(basename "${{ github.repository }}")
             docker-compose down
             git fetch origin && git reset --hard origin/main
-            docker-compose -f ./docker-compose.yml up -d --build
+            docker-compose -f ./docker-compose.prod.yml up -d --build
