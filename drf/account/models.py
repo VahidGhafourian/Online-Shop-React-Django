@@ -12,15 +12,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
-    email = models.EmailField(max_length=255, null=True, unique=True)
-    email_confirmd = models.EmailField(default=False)
+    email = models.EmailField(max_length=255, null=True)
+    email_confirmed = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     last_notification_check = models.DateTimeField(default=timezone.now)
     objects = UserManager()
 
     USERNAME_FIELD = 'phone_number'
-    REQUIRED_FIELDS = [] # This is jost for createsuperuser command.
+    REQUIRED_FIELDS = []  # This is just for createsuperuser command.
 
     def __str__(self):
         return f'{self.phone_number}'
@@ -28,8 +28,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['email'], condition=models.Q(email__isnull=False),
+                fields=['email'], 
+                condition=models.Q(email__isnull=False),
                 name='unique_non_null_email'
+            ),
+            models.UniqueConstraint(
+                fields=['email'],
+                condition=models.Q(email_confirmed=True),
+                name='unique_confirmed_email'
             ),
         ]
 

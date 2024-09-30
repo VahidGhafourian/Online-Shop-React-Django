@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["password", "confirm_password", "last_login", "first_name", "last_name", "is_active", "is_admin",
-                  "email_confirmd", "date_joined", "date_updated", "email", "phone_number"]
+                  "email_confirmed", "date_joined", "date_updated", "email", "phone_number"]
 
         extra_kwargs = {
             'password': {'write_only': True},
@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
             'date_joined': {'read_only': True},
             'phone_number': {'read_only': True},
             'date_updated': {'read_only': True},
-            'email_confirmd': {'read_only': True},
+            'email_confirmed': {'read_only': True},
         }
 
     def create(self, validated_data):

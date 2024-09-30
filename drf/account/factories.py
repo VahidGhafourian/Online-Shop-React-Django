@@ -20,7 +20,7 @@ class UserFactory(DjangoModelFactory):
     is_active = True
     is_admin = False
     is_staff = False
-    email_confirmd = False
+    email_confirmed = False
     date_joined = factory.LazyFunction(timezone.now)
     date_updated = factory.LazyFunction(timezone.now)
 

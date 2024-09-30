@@ -17,12 +17,12 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('is_admin',)
 
     fieldsets = (
-        ('Main', {'fields': ('email', 'phone_number', 'first_name', 'password')}),
+        ('Main', {'fields': ('email', 'email_confirmed', 'phone_number', 'first_name', 'password')}),
         ('Permissions', {'fields': ('is_active', 'is_admin',  'is_superuser', 'last_login', 'groups', 'user_permissions')}),
     )
 
     add_fieldsets = (
-        (None, {'fields': ('phone_number', 'email', 'first_name', 'password1', 'password2')}),
+        (None, {'fields': ('phone_number', 'email', 'email_confirmed', 'first_name', 'password1', 'password2')}),
     )
 
     search_fields = ('email', 'first_name')

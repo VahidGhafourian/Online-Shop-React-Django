@@ -11,7 +11,8 @@ class UserModelTest(TestCase):
             'password': 'testpassword',
             'first_name': 'John',
             'last_name': 'Doe',
-            'email': 'john@example.com'
+            'email': 'john@example.com',
+            'email_confirmed': True
         }
 
     def test_create_user(self):
