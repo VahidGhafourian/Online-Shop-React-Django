@@ -194,6 +194,8 @@ class UserInfoView(APIView):
                 'errors': user_serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
+# TODO: Add confirm email view.
+
 class AddressView(APIView):
     permission_classes = [IsAuthenticated]
 

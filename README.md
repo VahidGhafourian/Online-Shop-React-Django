@@ -29,9 +29,12 @@ Here is the Entity-Relationship diagram generated using https://dbdiagram.io/
 
 Clone this repository to your local machine and rename the `.env.example` file found in the root directory of the project to `.env` and update the environment variables accordingly.
 
+Create external volume with docker named `shop`.
+
 ```
 $ docker-compose up
-$ docker-compose exec web python manage.py createsuperuser
 ```
 
 Navigate to http://localhost:8000/admin/
+---
+More information about API usage can be found [here](https://github.com/VahidGhafourian/Online-Shop-React-Django/blob/main/API%20Documents.md).
