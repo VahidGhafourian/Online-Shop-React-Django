@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 
-# class Command(BaseCommand):
+class Command(BaseCommand):
     help = 'Create a superuser with environment variables'
 
     def handle(self, *args, **options):
