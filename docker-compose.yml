@@ -9,6 +9,8 @@ services:
       - 8000:8000
     depends_on:
       - db
+    networks:
+      - shop_net
 
   db:
     image: postgres:12
@@ -22,8 +24,14 @@ services:
       - 5432:5432
     volumes:
       - shop:/var/lib/postgresql/data
+    networks:
+      - shop_net
 
 volumes:
   shop:
     name: shop
     external: true
+
+networks:
+  shop_net:
+    driver: bridge

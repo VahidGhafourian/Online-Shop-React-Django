@@ -1,6 +1,6 @@
 # Django Ecommerce API
 
-An E-commerce API built using Django Rest Framework.
+An E-commerce API built using Django Rest Framework. [Github repository](https://github.com/VahidGhafourian/Online-Shop-React-Django) | [API Documentation](https://github.com/VahidGhafourian/Online-Shop-React-Django/blob/main/API%20Documents.md)
 
 ## Basic Features
 
