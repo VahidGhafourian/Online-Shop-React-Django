@@ -1,14 +1,24 @@
 from typing import Any
+
 from django.contrib import admin
 from django.db.models.fields.json import JSONField
 from jsoneditor.forms import JSONEditor
-from .models import Category, Product, ProductVariant, ProductImage, Inventory, Review, Tag
+
 from .adminforms import ProductAdminForm, ProductVariantAdminForm
+from .models import (
+    Category,
+    Inventory,
+    Product,
+    ProductImage,
+    ProductVariant,
+    Review,
+    Tag,
+)
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('title',)}
-    list_display = ('title', 'slug', 'parent')
+    prepopulated_fields = {"slug": ("title",)}
+    list_display = ("title", "slug", "parent")
     formfield_overrides = {
         JSONField: {
             "widget": JSONEditor(
@@ -17,15 +27,16 @@ class CategoryAdmin(admin.ModelAdmin):
         }
     }
 
+
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    prepopulated_fields = {'slug': ('title',)} # TODO: Add Persian to this feature.
-    list_display = ('title', 'category', 'description')
+    prepopulated_fields = {"slug": ("title",)}  # TODO: Add Persian to this feature.
+    list_display = ("title", "category", "description")
 
 
 class ProductVariantAdmin(admin.ModelAdmin):
     form = ProductVariantAdminForm
-    list_display = ('id', 'product', 'price')
+    list_display = ("id", "product", "price")
     # ordering = ['pk']
 
 

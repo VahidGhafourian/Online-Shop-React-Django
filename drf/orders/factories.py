@@ -1,13 +1,14 @@
 import factory
-from faker import Faker
-from factory.django import DjangoModelFactory
-from .models import Order, OrderItem
-from account.factories import UserFactory
-from products.factories import ProductVariantFactory
+from account.factories import AddressFactory, UserFactory
 from django.utils import timezone
-from account.factories import AddressFactory
+from factory.django import DjangoModelFactory
+from faker import Faker
+from products.factories import ProductVariantFactory
+
+from .models import Order, OrderItem
 
 fake = Faker()
+
 
 class OrderFactory(DjangoModelFactory):
     class Meta:
@@ -25,8 +26,8 @@ class OrderFactory(DjangoModelFactory):
         if not create:
             return
 
-        have_items = kwargs.pop('have_items', True)
-        size = kwargs.pop('size', None)
+        have_items = kwargs.pop("have_items", True)
+        size = kwargs.pop("size", None)
         if have_items:
             if extracted:
                 for item in extracted:
@@ -35,14 +36,15 @@ class OrderFactory(DjangoModelFactory):
                 num_items = size if size is not None else fake.random_int(min=1, max=5)
                 OrderItemFactory.create_batch(num_items, order=self)
 
+
 class OrderItemFactory(DjangoModelFactory):
     class Meta:
         model = OrderItem
 
     order = factory.SubFactory(OrderFactory, items__have_items=False)
     product_variant = factory.SubFactory(ProductVariantFactory)
-    price = factory.Faker('random_int', min=1000, max=100000)
-    quantity = factory.Faker('random_int', min=1, max=10)
+    price = factory.Faker("random_int", min=1000, max=100000)
+    quantity = factory.Faker("random_int", min=1, max=10)
     added_at = factory.LazyFunction(timezone.now)
 
     @classmethod

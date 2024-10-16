@@ -1,15 +1,19 @@
+from account.models import User
+from ckeditor.fields import RichTextField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
-from ckeditor.fields import RichTextField
-from account.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 
+
 class Category(models.Model):
-    parent = models.ForeignKey('self',
-                               on_delete=models.SET_NULL,
-                               related_name='children',
-                               null=True, blank=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        related_name="children",
+        null=True,
+        blank=True,
+    )
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -19,21 +23,24 @@ class Category(models.Model):
 
     class Meta:
         # ordering = ('title', )
-        verbose_name = 'category'
-        verbose_name_plural = 'Categories'
+        verbose_name = "category"
+        verbose_name_plural = "Categories"
 
     def __str__(self):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('home:category_filter', args=[self.slug])
+        return reverse("home:category_filter", args=[self.slug])
+
 
 class Product(models.Model):
-    category = models.ForeignKey(Category,
-                                 related_name='products',
-                                 on_delete=models.SET_NULL,
-                                 null=True,
-                                 limit_choices_to={'children__isnull': True},)
+    category = models.ForeignKey(
+        Category,
+        related_name="products",
+        on_delete=models.SET_NULL,
+        null=True,
+        limit_choices_to={"children__isnull": True},
+    )
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = RichTextField(null=True, blank=True)
@@ -41,31 +48,40 @@ class Product(models.Model):
     attributes = models.JSONField(default=dict, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    tags = models.ManyToManyField("Tag", related_name="products")
 
     # class Meta:
-        # ordering = ('title', )
+    # ordering = ('title', )
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
         if not self.images.exists():
-            ProductImage.objects.create(product=self, image='product_images/default.png')
+            ProductImage.objects.create(
+                product=self, image="product_images/default.png"
+            )
 
     @property
     def default_image(self):
-        return self.images.first() or ProductImage(image='product_images/default.png')
-    
+        return self.images.first() or ProductImage(image="product_images/default.png")
+
     def __str__(self):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('home:product_detail', args=[self.slug, ])
+        return reverse(
+            "home:product_detail",
+            args=[
+                self.slug,
+            ],
+        )
+
 
 class ProductVariant(models.Model):
-    product = models.ForeignKey(Product,
-                                on_delete=models.CASCADE,
-                                related_name='variants')
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="variants"
+    )
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     price = models.PositiveIntegerField()
@@ -79,26 +95,31 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f"{self.product.title} - Variant"
 
+
 class ProductImage(models.Model):
-    product = models.ForeignKey(Product,
-                                on_delete=models.CASCADE,
-                                related_name='images')
-    image = models.ImageField(upload_to='product_images/', default='product_images/default.png')
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="images"
+    )
+    # TODO: Use external storage like MinIO
+    image = models.ImageField(upload_to="product_images/")
     alt_text = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return f"Image of {self.product.title}"
 
+
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=50, unique=True, blank=True)
-    products = models.ManyToManyField(Product, related_name='tags', blank=True)
 
     def __str__(self):
         return self.name
 
+
 class Review(models.Model):
-    product = models.ForeignKey(Product,on_delete=models.CASCADE, related_name='reviews')
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="reviews"
+    )
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     rating = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
@@ -109,13 +130,16 @@ class Review(models.Model):
     approval = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('product', 'user')  # Ensures one review per user per product
+        unique_together = ("product", "user")  # Ensures one review per user per product
 
     def __str__(self):
         return f"Review of {self.product.title} by {self.user.phone_number}"
 
+
 class Inventory(models.Model):
-    product_variant = models.OneToOneField(ProductVariant, on_delete=models.CASCADE, related_name='inventory')
+    product_variant = models.OneToOneField(
+        ProductVariant, on_delete=models.CASCADE, related_name="inventory"
+    )
     quantity = models.PositiveIntegerField(default=0)
 
     def __str__(self):

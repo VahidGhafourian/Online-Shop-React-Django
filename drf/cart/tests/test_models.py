@@ -1,11 +1,13 @@
-from django.test import TestCase
-from django.core.exceptions import ValidationError
-from cart.models import Cart, CartItem
-from cart.factories import CartFactory, CartItemFactory
-from products.factories import ProductVariantFactory
 from account.factories import UserFactory
-from payments.factories import CouponFactory
+from django.core.exceptions import ValidationError
+from django.test import TestCase
 from django.utils import timezone
+from payments.factories import CouponFactory
+from products.factories import ProductVariantFactory
+
+from cart.factories import CartFactory, CartItemFactory
+from cart.models import Cart, CartItem
+
 
 class CartModelTest(TestCase):
     def setUp(self):
@@ -44,12 +46,15 @@ class CartModelTest(TestCase):
         self.cart.save()
         self.assertEqual(self.cart.coupon, coupon)
 
+
 class CartItemModelTest(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.cart = Cart.objects.create(user=self.user)
         self.product_variant = ProductVariantFactory()
-        self.cart_item = CartItemFactory(cart=self.cart, product_variant=self.product_variant)
+        self.cart_item = CartItemFactory(
+            cart=self.cart, product_variant=self.product_variant
+        )
 
     def test_cart_item_creation(self):
         self.assertIsInstance(self.cart_item, CartItem)
@@ -83,7 +88,9 @@ class CartItemModelTest(TestCase):
         self.cart_item.product_variant.product.save()
 
         with self.assertRaises(ValidationError):
-            CartItemFactory(cart=self.cart, product_variant=self.cart_item.product_variant)
+            CartItemFactory(
+                cart=self.cart, product_variant=self.cart_item.product_variant
+            )
 
     def test_cart_item_added_at(self):
         self.assertIsNotNone(self.cart_item.added_at)

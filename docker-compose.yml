@@ -17,11 +17,9 @@ services:
     environment:
     - "POSTGRES_HOST_AUTH_METHOD=trust"
     - "POSTGRES_DB=${DB_NAME}"
-    - "POSTGRES_USER=${DB_USER}"
     - "PGUSER=${DB_USER}"
-    - "POSTGRES_PASSWORD=${DB_PASSWORD}"
-    ports:
-      - 5432:5432
+    - "PGPASSWORD=${DB_PASSWORD}"
+    - "PGPORT=${DB_PORT}"
     volumes:
       - shop:/var/lib/postgresql/data
     networks:
@@ -30,7 +28,6 @@ services:
 volumes:
   shop:
     name: shop
-    external: true
 
 networks:
   shop_net:

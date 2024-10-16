@@ -1,30 +1,35 @@
-from utils import send_otp_code
-from .models import OtpCode, User, Address
-from rest_framework.exceptions import ValidationError
-from rest_framework.views import APIView
-from .serializers import UserSerializer, OtpCodeSerializer, AddressSerializer
-from rest_framework.response import Response
+from django.utils import timezone
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from utils import generate_otp, send_otp_code
-from django.utils import timezone
+
+from .models import Address, OtpCode, User
+from .serializers import AddressSerializer, OtpCodeSerializer, UserSerializer
+
 
 # TODO: Fix bugs in add new address with default=True.
 class UserCheckLoginPhone(APIView):
     """
-        Method: POST \n
-            Check entered phone number existence in db and have password or not. \n
-        Input: \n
-            - phone_number: 11 digits \n
-        return: \n
-            - newUser: True if this phone number doesn't found in db. False if phone number found in db. \n
-            - havePass: True if the user already have password. False if user doesn't set password. \n
+    Method: POST \n
+        Check entered phone number existence in db and have password or not. \n
+    Input: \n
+        - phone_number: 11 digits \n
+    return: \n
+        - newUser: True if this phone number doesn't found in db. False if phone number found in db. \n
+        - havePass: True if the user already have password. False if user doesn't set password. \n
     """
+
     def post(self, request, *args, **kwargs):
-        phone_number = request.data.get('phone_number')
+        phone_number = request.data.get("phone_number")
         if not phone_number:
-            return Response({'error': 'Phone number is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Phone number is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             user = User.objects.get(phone_number=phone_number)
             if user.password:
@@ -36,7 +41,10 @@ class UserCheckLoginPhone(APIView):
             have_pass = False
             new_user = True
 
-        return Response({'new_user': new_user, 'have_pass': have_pass}, status=status.HTTP_200_OK)
+        return Response(
+            {"new_user": new_user, "have_pass": have_pass}, status=status.HTTP_200_OK
+        )
+
 
 class GenerateSendOTP(APIView):
     """
@@ -48,38 +56,41 @@ class GenerateSendOTP(APIView):
         - success: True if OTP is sent successfully \n
         - message: Informational message \n
     """
+
     def post(self, request, *args, **kwargs):
-        phone_number = request.data.get('phone_number')
+        phone_number = request.data.get("phone_number")
 
         try:
             otp_code = generate_otp()
             self.save_otp(phone_number, otp_code)
             # self.send_otp(phone_number, otp_code) # uncomment in production
 
-            return Response({
-                'success': True,
-                'otp_code': otp_code,
-                'message': 'OTP sent successfully'
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "success": True,
+                    "otp_code": otp_code,
+                    "message": "OTP sent successfully",
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except ValidationError as e:
-            return Response({
-                'success': False,
-                'message': str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": False, "message": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         except Exception as e:
-            return Response({
-                'success': False,
-                'message': 'An unexpected error occurred'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"success": False, "message": "An unexpected error occurred"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def save_otp(self, phone_number, otp_code):
         OtpCode.objects.filter(phone_number=phone_number).delete()
-        serializer = OtpCodeSerializer(data={
-            'phone_number': phone_number,
-            'code': otp_code
-        })
+        serializer = OtpCodeSerializer(
+            data={"phone_number": phone_number, "code": otp_code}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -87,7 +98,8 @@ class GenerateSendOTP(APIView):
         try:
             send_otp_code(phone_number, otp_code)
         except Exception as e:
-            raise ValidationError('Failed to send OTP. Please try again later.')
+            raise ValidationError("Failed to send OTP. Please try again later.")
+
 
 class VerifyOTP(APIView):
     """
@@ -102,10 +114,11 @@ class VerifyOTP(APIView):
         - access: JWT access token if OTP is valid \n
         - refresh: JWT refresh token if OTP is valid \n
     """
+
     def post(self, request):
         try:
-            phone_number = request.data.get('phone_number')
-            entered_otp = request.data.get('otp')
+            phone_number = request.data.get("phone_number")
+            entered_otp = request.data.get("otp")
 
             self.validate_input(phone_number, entered_otp)
             self.verify_otp(phone_number, entered_otp)
@@ -114,38 +127,50 @@ class VerifyOTP(APIView):
             user.save()
 
             refresh = RefreshToken.for_user(user)
-            return Response({
-                'success': True,
-                'message': 'OTP verified successfully',
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "success": True,
+                    "message": "OTP verified successfully",
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except ValidationError as e:
-            return Response({'success': False, 'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": False, "message": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
-            return Response({'success': False, 'message': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"success": False, "message": "An unexpected error occurred"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def validate_input(self, phone_number, entered_otp):
         if not phone_number or not entered_otp:
-            raise ValidationError('Phone number and OTP are required.')
+            raise ValidationError("Phone number and OTP are required.")
         if not phone_number.isdigit() or len(phone_number) != 11:
-            raise ValidationError('Invalid phone number format.')
+            raise ValidationError("Invalid phone number format.")
         if not entered_otp.isdigit() or len(entered_otp) != 5:
-            raise ValidationError('Invalid OTP format.')
+            raise ValidationError("Invalid OTP format.")
 
     def verify_otp(self, phone_number, entered_otp):
-        otp = OtpCode.objects.filter(phone_number=phone_number, code=entered_otp).first()
+        otp = OtpCode.objects.filter(
+            phone_number=phone_number, code=entered_otp
+        ).first()
         if not otp:
-            raise ValidationError('Invalid OTP.')
+            raise ValidationError("Invalid OTP.")
         if otp.expires_at < timezone.now():
             otp.delete()
-            raise ValidationError('OTP has expired.')
+            raise ValidationError("OTP has expired.")
         otp.delete()
 
     def get_or_create_user(self, data):
-        user, _ = User.objects.get_or_create(phone_number=data.get('phone_number'))
+        user, _ = User.objects.get_or_create(phone_number=data.get("phone_number"))
         return user
+
 
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
@@ -182,19 +207,24 @@ class UserInfoView(APIView):
             # Save the user with the new password
             user = user_serializer.save()
 
-            return Response({
-                'success': True,
-                'message': 'User updated successfully'
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {"success": True, "message": "User updated successfully"},
+                status=status.HTTP_200_OK,
+            )
         else:
             # Return validation errors
-            return Response({
-                'success': False,
-                'message': 'User update failed',
-                'errors': user_serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "success": False,
+                    "message": "User update failed",
+                    "errors": user_serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
 
 # TODO: Add confirm email view.
+
 
 class AddressView(APIView):
     permission_classes = [IsAuthenticated]
@@ -222,7 +252,7 @@ class AddressView(APIView):
             - Created Address information. Or Bad Request for invalid data \n
         """
         data = request.data.copy()
-        data['user'] = request.user.id
+        data["user"] = request.user.id
         serializer = AddressSerializer(data=data)
         if serializer.is_valid():
             serializer.save()

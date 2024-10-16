@@ -1,55 +1,72 @@
-from rest_framework import serializers
-from rest_framework import serializers
-from .models import Category, Product, ProductVariant, ProductImage, Tag, Review, Inventory
 import jsonschema
 from django.utils.text import slugify
+from rest_framework import serializers
+
+from .models import (
+    Category,
+    Inventory,
+    Product,
+    ProductImage,
+    ProductVariant,
+    Review,
+    Tag,
+)
+
 
 class CategorySerializer(serializers.ModelSerializer):
-        # Adding format to the datetime fields
+    # Adding format to the datetime fields
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
     updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S%z", read_only=True)
 
     class Meta:
         model = Category
         fields = [
-            'id', 'parent', 'title', 'slug', 'created_at', 'updated_at',
-            'product_attributes_schema', 'variant_attributes_schema'
+            "id",
+            "parent",
+            "title",
+            "slug",
+            "created_at",
+            "updated_at",
+            "product_attributes_schema",
+            "variant_attributes_schema",
         ]
 
     def validate_product_attributes_schema(self, value):
         try:
             jsonschema.validate(instance=value, schema={"type": "object"})
         except jsonschema.exceptions.ValidationError:
-            raise serializers.ValidationError("Invalid JSON schema for product attributes")
+            raise serializers.ValidationError(
+                "Invalid JSON schema for product attributes"
+            )
         return value
 
     def validate_variant_attributes_schema(self, value):
         try:
             jsonschema.validate(instance=value, schema={"type": "object"})
         except jsonschema.exceptions.ValidationError:
-            raise serializers.ValidationError("Invalid JSON schema for variant attributes")
+            raise serializers.ValidationError(
+                "Invalid JSON schema for variant attributes"
+            )
         return value
 
     def create(self, validated_data):
-        if 'slug' not in validated_data or not validated_data['slug']:
-            validated_data['slug'] = slugify(validated_data['title'])
+        if "slug" not in validated_data or not validated_data["slug"]:
+            validated_data["slug"] = slugify(validated_data["title"])
         return super().create(validated_data)
+
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = [
-            'id', 'product', 'image', 'alt_text'
-        ]
+        fields = ["id", "product", "image", "alt_text"]
+
 
 class ProductVariantSerializer(serializers.ModelSerializer):
     quantity = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductVariant
-        fields = [
-            'id', 'product', 'price',
-            'quantity', 'attributes'
-        ]
+        fields = ["id", "product", "price", "quantity", "attributes"]
 
     def get_quantity(self, obj):
         try:
@@ -57,10 +74,10 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         except AttributeError:
             return None
 
+
 class ProductSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
-    default_image = serializers.SerializerMethodField()
     lowest_price = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     # Adding format to the datetime fields
@@ -70,13 +87,21 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'category', 'title', 'slug', 'description', 'available', 'attributes',
-            'images', 'default_image', 'variants', 'lowest_price', 'average_rating', 'created_at', 'updated_at'
+            "id",
+            "category",
+            "title",
+            "slug",
+            "description",
+            "available",
+            "attributes",
+            "images",
+            "variants",
+            "lowest_price",
+            "average_rating",
+            "created_at",
+            "updated_at",
         ]
 
-    def get_default_image(self, obj):
-        return ProductImageSerializer(obj.default_image).data
-    
     def get_lowest_price(self, obj):
         variants = obj.variants.all()
         if variants:
@@ -90,30 +115,39 @@ class ProductSerializer(serializers.ModelSerializer):
         return None
 
     def validate_attributes(self, value):
-        category = self.instance.category if self.instance else self.initial_data.get('category')
+        category = (
+            self.instance.category
+            if self.instance
+            else self.initial_data.get("category")
+        )
         if category:
             schema = Category.objects.get(id=category).product_attributes_schema
             try:
                 jsonschema.validate(instance=value, schema=schema)
             except jsonschema.exceptions.ValidationError:
-                raise serializers.ValidationError("Product attributes do not match the category schema")
+                raise serializers.ValidationError(
+                    "Product attributes do not match the category schema"
+                )
         return value
+
     # TODO: Add serializer for product list and product detail
 
     def create(self, validated_data):
-        if 'slug' not in validated_data or not validated_data['slug']:
-            validated_data['slug'] = slugify(validated_data['title'])
+        if "slug" not in validated_data or not validated_data["slug"]:
+            validated_data["slug"] = slugify(validated_data["title"])
         return super().create(validated_data)
+
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ['id', 'name', 'slug', 'products']
+        fields = ["id", "name", "slug", "products"]
 
     def create(self, validated_data):
-        if 'slug' not in validated_data or not validated_data['slug']:
-            validated_data['slug'] = slugify(validated_data['name'])
+        if "slug" not in validated_data or not validated_data["slug"]:
+            validated_data["slug"] = slugify(validated_data["name"])
         return super().create(validated_data)
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
@@ -123,8 +157,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ['id', 'product', 'user', 'rating', 'comment', 'created_at']
-        read_only_fields = ['id', 'user', 'created_at']
+        fields = ["id", "product", "user", "rating", "comment", "created_at"]
+        read_only_fields = ["id", "user", "created_at"]
 
 
 class InventorySerializer(serializers.ModelSerializer):
@@ -132,4 +166,4 @@ class InventorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Inventory
-        fields = ['id', 'product_variant', 'quantity']
+        fields = ["id", "product_variant", "quantity"]
