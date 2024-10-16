@@ -1,6 +1,5 @@
 from account.factories import AddressFactory, UserFactory
 from django.test import TestCase
-from django.utils import timezone
 from products.factories import ProductFactory, ProductVariantFactory
 from rest_framework.exceptions import ValidationError
 

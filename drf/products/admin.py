@@ -1,5 +1,3 @@
-from typing import Any
-
 from django.contrib import admin
 from django.db.models.fields.json import JSONField
 from jsoneditor.forms import JSONEditor

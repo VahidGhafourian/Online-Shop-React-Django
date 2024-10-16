@@ -20,6 +20,7 @@ class UserSerializerTest(TestCase):
 
     def test_user_creation(self):
         serializer = UserSerializer(instance=self.user)
+        serializer.save()
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(self.user.phone_number, "12345678901")
         self.assertEqual(self.user.email, "test@example.com")

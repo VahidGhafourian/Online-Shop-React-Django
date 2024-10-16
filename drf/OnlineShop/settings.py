@@ -5,6 +5,7 @@ Email: Vahidghafourianam@gmail.com
 
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # from dotenv import load_dotenv
 from decouple import config
@@ -174,8 +175,6 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
-
-from datetime import timedelta
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),

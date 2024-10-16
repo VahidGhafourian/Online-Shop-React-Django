@@ -1,7 +1,7 @@
 from django import forms
 from django_jsonform.widgets import JSONFormWidget
 
-from .models import Category, Product, ProductVariant
+from .models import Product, ProductVariant
 
 
 class ProductAdminForm(forms.ModelForm):

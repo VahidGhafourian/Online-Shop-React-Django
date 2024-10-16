@@ -41,8 +41,8 @@ class OrderModelTest(TestCase):
         self.assertTrue(isinstance(self.order.updated_at, timezone.datetime))
 
     def test_get_total_price(self):
-        item1 = OrderItemFactory(order=self.order, price=10000, quantity=2)
-        item2 = OrderItemFactory(order=self.order, price=5000, quantity=1)
+        OrderItemFactory(order=self.order, price=10000, quantity=2)
+        OrderItemFactory(order=self.order, price=5000, quantity=1)
         self.assertEqual(self.order.get_total_price(), 25000)
 
 

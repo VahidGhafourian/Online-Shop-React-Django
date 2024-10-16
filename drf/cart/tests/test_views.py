@@ -1,5 +1,4 @@
 from account.factories import UserFactory
-from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from payments.factories import CouponFactory

@@ -3,13 +3,11 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from payments.factories import CouponFactory, DiscountFactory
-from payments.models import Discount
 from products.factories import CategoryFactory, ProductFactory, ProductVariantFactory
 from rest_framework import status
-from rest_framework.test import APITestCase
 
-from cart.factories import CartFactory, CartItemFactory
-from cart.models import Cart, CartItem
+from cart.factories import CartItemFactory
+from cart.models import Cart
 from cart.serializers import CartItemSerializer, CartSerializer
 
 
@@ -49,7 +47,7 @@ class CartItemSerializerTest(TestCase):
         )
 
         # Create a discount
-        discount = DiscountFactory(
+        DiscountFactory(
             discount_percent=10, applicable_categories=[category]
         )
         serializer = CartItemSerializer(instance=cart_item)
@@ -87,7 +85,7 @@ class CartItemSerializerTest(TestCase):
         )
 
 
-class CartSerializerTest(APITestCase):
+class CartSerializerTest(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.cart = Cart.objects.create(user=self.user)

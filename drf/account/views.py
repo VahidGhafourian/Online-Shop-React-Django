@@ -82,7 +82,7 @@ class GenerateSendOTP(APIView):
 
         except Exception as e:
             return Response(
-                {"success": False, "message": "An unexpected error occurred"},
+                {"success": False, "message": f"An unexpected error occurred {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -98,7 +98,7 @@ class GenerateSendOTP(APIView):
         try:
             send_otp_code(phone_number, otp_code)
         except Exception as e:
-            raise ValidationError("Failed to send OTP. Please try again later.")
+            raise ValidationError(f"Failed to send OTP. Please try again later. {e}")
 
 
 class VerifyOTP(APIView):
@@ -144,7 +144,7 @@ class VerifyOTP(APIView):
             )
         except Exception as e:
             return Response(
-                {"success": False, "message": "An unexpected error occurred"},
+                {"success": False, "message": f"An unexpected error occurred. {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -221,7 +221,6 @@ class UserInfoView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
 
 # TODO: Add confirm email view.
 

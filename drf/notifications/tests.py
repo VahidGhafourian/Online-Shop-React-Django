@@ -1,8 +1,14 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
+from rest_framework import status
+from rest_framework.test import APIClient
 
 from notifications.models import Notification
+from notifications.serializers import NotificationSerializer
 
 User = get_user_model()
 
@@ -46,9 +52,6 @@ class NotificationModelTest(TestCase):
         self.assertEqual(notification.message, "Your order status has changed")
         self.assertFalse(notification.is_read)
         self.assertIsNotNone(notification.created_at)
-
-
-from notifications.serializers import NotificationSerializer
 
 
 class NotificationSerializerTest(TestCase):
@@ -98,13 +101,6 @@ class NotificationSerializerTest(TestCase):
         self.assertIsNotNone(data["created_at"])
 
 
-import json
-
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
-
-
 class NotificationViewSetTest(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -144,7 +140,7 @@ class NotificationViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_get_by_timeframe(self):
-        old_notification = Notification.objects.create(
+        Notification.objects.create(
             user=self.user,
             notification_type="custom",
             message="Old notification",

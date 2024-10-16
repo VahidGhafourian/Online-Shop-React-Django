@@ -1,5 +1,4 @@
 from account.models import Address
-from products.serializers import ProductVariantSerializer
 from rest_framework import serializers
 
 from .models import Order, OrderItem

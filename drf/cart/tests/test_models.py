@@ -5,7 +5,7 @@ from django.utils import timezone
 from payments.factories import CouponFactory
 from products.factories import ProductVariantFactory
 
-from cart.factories import CartFactory, CartItemFactory
+from cart.factories import CartItemFactory
 from cart.models import Cart, CartItem
 
 
@@ -25,8 +25,8 @@ class CartModelTest(TestCase):
 
     def test_cart_total_price(self):
         # Create some cart items
-        item1 = CartItemFactory(cart=self.cart, quantity=2, price=1000)
-        item2 = CartItemFactory(cart=self.cart, quantity=1, price=1500)
+        CartItemFactory(cart=self.cart, quantity=2, price=1000)
+        CartItemFactory(cart=self.cart, quantity=1, price=1500)
 
         expected_total = (2 * 1000) + (1 * 1500)
         self.assertEqual(self.cart.total_price, expected_total)

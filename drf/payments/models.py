@@ -63,13 +63,6 @@ class Coupon(models.Model):
     applicable_to = models.ManyToManyField(ProductVariant, blank=True)
     applicable_categories = models.ManyToManyField(Category, blank=True)
 
-    def is_valid(self):
-        return (
-            self.is_active
-            and self.usage_count < self.usage_limit
-            and self.start_date <= timezone.now() <= self.end_date
-        )
-
     def calculate_discount(self, price):
         return price - (price * (self.discount_percentage / 100))
 
