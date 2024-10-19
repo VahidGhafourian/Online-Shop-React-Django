@@ -5,6 +5,7 @@ from django.utils import timezone
 from payments.factories import CouponFactory, DiscountFactory
 from products.factories import CategoryFactory, ProductFactory, ProductVariantFactory
 from rest_framework import status
+from rest_framework.test import APITestCase
 
 from cart.factories import CartItemFactory
 from cart.models import Cart
@@ -85,7 +86,7 @@ class CartItemSerializerTest(TestCase):
         )
 
 
-class CartSerializerTest(TestCase):
+class CartSerializerTest(APITestCase):
     def setUp(self):
         self.user = UserFactory()
         self.cart = Cart.objects.create(user=self.user)

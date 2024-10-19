@@ -61,6 +61,10 @@ class GenerateSendOTP(APIView):
     def post(self, request, *args, **kwargs):
         phone_number = request.data.get("phone_number")
 
+        validation_response = self.validate_phone_number(phone_number)
+        if validation_response:
+            return validation_response
+        
         try:
             otp_code = generate_otp()
             self.save_otp(phone_number, otp_code)
@@ -86,7 +90,23 @@ class GenerateSendOTP(APIView):
                 {"success": False, "message": f"An unexpected error occurred {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+            
+    def validate_phone_number(self, phone_number):
+        """
+        Validates the phone number. Returns a Response if invalid, otherwise None.
+        """
+        if not phone_number:
+            return Response(
+                {"success": False, "message": "Phone number is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not phone_number.isdigit() or len(phone_number) != 11:
+            return Response(
+                {"success": False, "message": "Phone number must be 11 digits."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return None
+        
     def save_otp(self, phone_number, otp_code):
         cache_key = f"otp:{phone_number}"
         cache.set(cache_key, otp_code, timeout=300) # 5 minutes expiration

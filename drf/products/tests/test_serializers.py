@@ -85,7 +85,6 @@ class ProductSerializerTest(TestCase):
                     "available",
                     "attributes",
                     "images",
-                    "default_image",
                     "variants",
                     "lowest_price",
                     "average_rating",

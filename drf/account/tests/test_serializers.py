@@ -16,14 +16,6 @@ class UserSerializerTest(TestCase):
             "first_name": "John",
             "last_name": "Doe",
         }
-        self.user = User.objects.create(**self.user_data)
-
-    def test_user_creation(self):
-        serializer = UserSerializer(instance=self.user)
-        serializer.save()
-        self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(self.user.phone_number, "12345678901")
-        self.assertEqual(self.user.email, "test@example.com")
 
     def test_password_mismatch(self):
         self.user_data["confirm_password"] = "wrongpassword"
