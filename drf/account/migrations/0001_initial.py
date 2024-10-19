@@ -15,24 +15,24 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name="OtpCode",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("phone_number", models.CharField(max_length=13, unique=True)),
-                ("code", models.CharField(max_length=5)),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
-                ("expires_at", models.DateTimeField()),
-            ],
-        ),
+        # migrations.CreateModel(
+        #     name="OtpCode",
+        #     fields=[
+        #         (
+        #             "id",
+        #             models.BigAutoField(
+        #                 auto_created=True,
+        #                 primary_key=True,
+        #                 serialize=False,
+        #                 verbose_name="ID",
+        #             ),
+        #         ),
+        #         ("phone_number", models.CharField(max_length=13, unique=True)),
+        #         ("code", models.CharField(max_length=5)),
+        #         ("created_at", models.DateTimeField(auto_now_add=True)),
+        #         ("expires_at", models.DateTimeField()),
+        #     ],
+        # ),
         migrations.CreateModel(
             name="User",
             fields=[
@@ -133,14 +133,14 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
-        migrations.AddConstraint(
-            model_name="otpcode",
-            constraint=models.UniqueConstraint(
-                condition=models.Q(("phone_number__isnull", False)),
-                fields=("phone_number",),
-                name="unique_non_null_phone_number_otp",
-            ),
-        ),
+        # migrations.AddConstraint(
+        #     model_name="otpcode",
+        #     constraint=models.UniqueConstraint(
+        #         condition=models.Q(("phone_number__isnull", False)),
+        #         fields=("phone_number",),
+        #         name="unique_non_null_phone_number_otp",
+        #     ),
+        # ),
         migrations.AddConstraint(
             model_name="user",
             constraint=models.UniqueConstraint(

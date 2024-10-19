@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -7,8 +8,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from utils import generate_otp, send_otp_code
 
-from .models import Address, OtpCode, User
-from .serializers import AddressSerializer, OtpCodeSerializer, UserSerializer
+from .models import Address, User
+from .serializers import AddressSerializer, UserSerializer
 
 
 # TODO: Fix bugs in add new address with default=True.
@@ -87,12 +88,8 @@ class GenerateSendOTP(APIView):
             )
 
     def save_otp(self, phone_number, otp_code):
-        OtpCode.objects.filter(phone_number=phone_number).delete()
-        serializer = OtpCodeSerializer(
-            data={"phone_number": phone_number, "code": otp_code}
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        cache_key = f"otp:{phone_number}"
+        cache.set(cache_key, otp_code, timeout=300) # 5 minutes expiration
 
     def send_otp(self, phone_number, otp_code):
         try:
@@ -157,15 +154,14 @@ class VerifyOTP(APIView):
             raise ValidationError("Invalid OTP format.")
 
     def verify_otp(self, phone_number, entered_otp):
-        otp = OtpCode.objects.filter(
-            phone_number=phone_number, code=entered_otp
-        ).first()
-        if not otp:
-            raise ValidationError("Invalid OTP.")
-        if otp.expires_at < timezone.now():
-            otp.delete()
-            raise ValidationError("OTP has expired.")
-        otp.delete()
+        cache_key = f"otp:{phone_number}"
+        otp = cache.get(cache_key)
+
+        if not otp or otp != entered_otp:
+            raise ValidationError("Invalid or expired OTP.")
+        
+        # Delete OTP from Redis after successful verification
+        cache.delete(cache_key)
 
     def get_or_create_user(self, data):
         user, _ = User.objects.get_or_create(phone_number=data.get("phone_number"))

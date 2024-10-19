@@ -2,12 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from .forms import UserChangeForm, UserCreationForm
-from .models import Address, OtpCode, User
-
-
-@admin.register(OtpCode)
-class OtpCodeAdmin(admin.ModelAdmin):
-    list_display = ("phone_number", "code", "created_at")
+from .models import Address, User
 
 
 class UserAdmin(BaseUserAdmin):

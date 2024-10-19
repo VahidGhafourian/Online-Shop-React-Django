@@ -2,12 +2,11 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from account.factories import AddressFactory, OtpCodeFactory, UserFactory
-from account.models import Address, OtpCode, User
+from account.factories import AddressFactory, UserFactory
+from account.models import Address, User
 
 
 class UserCheckLoginPhoneTest(TestCase):
@@ -46,16 +45,15 @@ class GenerateSendOTPTest(TestCase):
         self.url = reverse("account:send-otp")
 
     @patch("account.views.generate_otp")
-    def test_generate_and_send_otp(self, mock_generate_otp):
+    @patch("account.views.cache.set")
+    def test_generate_and_send_otp(self, mock_cache_set, mock_generate_otp):
         mock_generate_otp.return_value = "12345"
         data = {"phone_number": "09123456789"}
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["success"])
         self.assertEqual(response.data["otp_code"], "12345")
-        self.assertTrue(
-            OtpCode.objects.filter(phone_number="09123456789", code="12345").exists()
-        )
+        mock_cache_set.assert_called_with("otp:09123456789", "12345", timeout=300)
 
     def test_invalid_phone_number(self):
         data = {"phone_number": "invalid"}
@@ -68,9 +66,11 @@ class VerifyOTPTest(TestCase):
         self.client = APIClient()
         self.url = reverse("account:verify_otp")
         self.user = UserFactory(phone_number="09123456789", password="testpass123")
-        self.otp = OtpCodeFactory(phone_number="09123456789", code="12345")
 
-    def test_valid_otp(self):
+    @patch("account.views.cache.get")
+    @patch("account.views.cache.delete")
+    def test_valid_otp(self, mock_cache_delete, mock_cache_get):
+        mock_cache_get.return_value = "12345"
         data = {"phone_number": "09123456789", "otp": "12345"}
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -78,15 +78,20 @@ class VerifyOTPTest(TestCase):
         self.assertIn("access", response.data)
         self.assertIn("refresh", response.data)
 
-    def test_invalid_otp(self):
+        mock_cache_delete.assert_called_with("otp:09123456789")
+
+    @patch("account.views.cache.get")
+    def test_invalid_otp(self, mock_cache_get):
+        mock_cache_get.return_value = "54321"
         data = {"phone_number": "09123456789", "otp": "00000"}
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["success"])
 
-    def test_expired_otp(self):
-        self.otp.expires_at = timezone.now() - timezone.timedelta(minutes=10)
-        self.otp.save()
+    @patch("account.views.cache.get")
+    def test_expired_otp(self, mock_cache_get):
+        # Simulate that OTP has already expired (cache returns None)
+        mock_cache_get.return_value = None
         data = {"phone_number": "09123456789", "otp": "12345"}
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

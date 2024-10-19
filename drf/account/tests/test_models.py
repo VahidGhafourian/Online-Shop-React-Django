@@ -1,10 +1,7 @@
-from datetime import timedelta
-
 from django.db import IntegrityError
 from django.test import TestCase
-from django.utils import timezone
 
-from account.models import Address, OtpCode, User
+from account.models import Address, User
 
 
 class UserModelTest(TestCase):
@@ -41,30 +38,6 @@ class UserModelTest(TestCase):
         self.assertIsNone(user1.email)
         self.assertIsNone(user2.email)
         self.assertNotEqual(user1.pk, user2.pk)
-
-
-class OtpCodeModelTest(TestCase):
-    def setUp(self):
-        self.otp_data = {
-            "phone_number": "1234567890",
-            "code": "12345",
-            "expires_at": timezone.now() + timedelta(minutes=5),
-        }
-
-    def test_create_otp_code(self):
-        otp = OtpCode.objects.create(**self.otp_data)
-        self.assertEqual(OtpCode.objects.count(), 1)
-        self.assertEqual(otp.phone_number, "1234567890")
-        self.assertEqual(otp.code, "12345")
-
-    def test_otp_str_method(self):
-        otp = OtpCode.objects.create(**self.otp_data)
-        self.assertTrue(str(otp).startswith("1234567890 - 12345 - "))
-
-    def test_unique_phone_number_constraint(self):
-        OtpCode.objects.create(**self.otp_data)
-        with self.assertRaises(IntegrityError):
-            OtpCode.objects.create(**self.otp_data)
 
 
 class AddressModelTest(TestCase):

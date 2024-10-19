@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from account.models import Address, OtpCode
-from account.serializers import AddressSerializer, OtpCodeSerializer, UserSerializer
+from account.models import Address
+from account.serializers import AddressSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -47,32 +47,6 @@ class UserSerializerTest(TestCase):
         updated_user = serializer.save()
         self.assertEqual(updated_user.first_name, "Jane")
         self.assertTrue(updated_user.check_password("newpassword"))
-
-
-class OtpCodeSerializerTest(TestCase):
-    def setUp(self):
-        self.otp_data = {"phone_number": "12345678901", "code": "12345"}
-
-    def test_otp_creation(self):
-        serializer = OtpCodeSerializer(data=self.otp_data)
-        self.assertTrue(serializer.is_valid())
-        otp = serializer.save()
-        self.assertEqual(OtpCode.objects.count(), 1)
-        self.assertEqual(otp.phone_number, "12345678901")
-        self.assertEqual(otp.code, "12345")
-        self.assertIsNotNone(otp.expires_at)
-
-    def test_invalid_phone_number(self):
-        self.otp_data["phone_number"] = "123"
-        serializer = OtpCodeSerializer(data=self.otp_data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn("Phone number must be 11 digits", str(serializer.errors))
-
-    def test_invalid_code(self):
-        self.otp_data["code"] = "123"
-        serializer = OtpCodeSerializer(data=self.otp_data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn("OTP code must be 5 digits", str(serializer.errors))
 
 
 class AddressSerializerTest(TestCase):

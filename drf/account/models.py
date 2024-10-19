@@ -42,25 +42,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
 
 
-class OtpCode(models.Model):
-    phone_number = models.CharField(max_length=13, unique=True)
-    code = models.CharField(max_length=5)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["phone_number"],
-                condition=models.Q(phone_number__isnull=False),
-                name="unique_non_null_phone_number_otp",
-            ),
-        ]
-
-    def __str__(self):
-        return f"{self.phone_number} - {self.code} - {self.created_at}"
-
-
 class Address(models.Model):
     is_default = models.BooleanField(default=False)
     country = models.CharField(max_length=100)

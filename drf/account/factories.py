@@ -3,7 +3,7 @@ from django.utils import timezone
 from factory.django import DjangoModelFactory
 from faker import Faker
 
-from .models import Address, OtpCode, User
+from .models import Address, User
 from .providers import IranianPhoneNumberProvider
 
 fake = Faker()
@@ -49,13 +49,13 @@ class AddressFactory(DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
 
 
-class OtpCodeFactory(DjangoModelFactory):
-    class Meta:
-        model = OtpCode
+# class OtpCodeFactory(DjangoModelFactory):
+#     class Meta:
+#         model = OtpCode
 
-    phone_number = factory.LazyAttribute(lambda _: fake.unique.iranian_phone_number())
-    code = factory.Faker("random_int", min=10000, max=99999)
-    created_at = factory.LazyFunction(timezone.now)
-    expires_at = factory.LazyAttribute(
-        lambda o: o.created_at + timezone.timedelta(minutes=5)
-    )
+#     phone_number = factory.LazyAttribute(lambda _: fake.unique.iranian_phone_number())
+#     code = factory.Faker("random_int", min=10000, max=99999)
+#     created_at = factory.LazyFunction(timezone.now)
+#     expires_at = factory.LazyAttribute(
+#         lambda o: o.created_at + timezone.timedelta(minutes=5)
+#     )
