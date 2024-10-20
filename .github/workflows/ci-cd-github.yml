@@ -30,7 +30,6 @@ jobs:
           REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           docker build -t ghcr.io/$REPO_NAME:latest .
           docker push ghcr.io/$REPO_NAME:latest
-
   test:
     runs-on: self-hosted
     needs: build
@@ -43,6 +42,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Install Python 3.11 and dev headers
+        run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt-get update
+          sudo apt-get install python3.11 python3.11-dev python3.11-venv -y
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
@@ -50,18 +55,18 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
+          python3.11 -m pip install --upgrade pip
           sudo apt-get install build-essential -y
           cd drf
-          pip install -r requirements.txt
+          python3.11 -m pip install -r requirements.txt
 
       - name: Run Tests
         env:
           DB_PORT: 5433
         run: |
           cd drf
-          python manage.py test --settings=OnlineShop.test_settings
-
+          python3.11 manage.py test --settings=OnlineShop.test_settings
+          
   deploy:
     environment: SSH_PRIVATE_KEY
     runs-on: self-hosted
